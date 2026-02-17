@@ -1,0 +1,518 @@
+:root {
+  --paper: #f7f3ea;
+  --panel: #fffdf8;
+  --ink: #1b2220;
+  --muted: #5a6661;
+  --line: #d1d8d3;
+  --signal: #244840;
+  --action: #c95a2d;
+  --action-ink: #fffaf5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #fbf8f2 0%, var(--paper) 100%);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Gill Sans", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+main {
+  width: min(1080px, 92vw);
+  margin: 0 auto;
+  padding: 1.1rem 0 3rem;
+}
+
+.site-nav {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 0.72rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.brand {
+  font-family: "IBM Plex Serif", "Georgia", serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nav-link,
+.route-pill {
+  border: 1px solid var(--line);
+  background: #fcfaf4;
+  border-radius: 999px;
+  padding: 0.22rem 0.62rem;
+  font-size: 0.83rem;
+  color: #2e3a36;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+}
+
+.nav-link.active,
+.route-pill.active {
+  border-color: #90604b;
+  background: #f8dfd3;
+  color: #6e3724;
+}
+
+.home-hero {
+  margin-top: 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  padding: 1.4rem;
+}
+
+.kicker {
+  margin: 0;
+  color: #7e4b38;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.74rem;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+}
+
+.home-title,
+.title-serif {
+  margin: 0.36rem 0 0.44rem;
+  line-height: 1.08;
+  font-family: "IBM Plex Serif", "Georgia", serif;
+  font-size: clamp(1.8rem, 4.6vw, 2.6rem);
+}
+
+.home-subtitle,
+.lead {
+  margin: 0;
+  color: #2f3a37;
+  max-width: 64ch;
+}
+
+.action-row {
+  margin-top: 0.92rem;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 1px solid #3f534d;
+  border-radius: 11px;
+  padding: 0.52rem 0.84rem;
+  background: #fffdf8;
+  color: #1a3430;
+  font-weight: 600;
+}
+
+.btn.signal {
+  border-color: #99452a;
+  background: var(--action);
+  color: var(--action-ink);
+}
+
+.btn:hover,
+.nav-link:hover,
+.route-pill:hover {
+  transform: translateY(-1px);
+}
+
+.section {
+  margin-top: 0.95rem;
+}
+
+.manual-layout {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 0.85rem;
+}
+
+.module,
+.route-card,
+.calendar-card,
+.list-card,
+.hero-core,
+.hero-side {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.module h2,
+.module h3,
+.list-card h3,
+.route-title,
+.side-title,
+.calendar-head h2 {
+  margin: 0 0 0.35rem;
+  font-family: "IBM Plex Serif", "Georgia", serif;
+}
+
+.code-block {
+  margin: 0;
+  border: 1px solid #3f4d49;
+  border-radius: 12px;
+  background: #1f2826;
+  color: #e3ece9;
+  padding: 0.86rem;
+  overflow-x: auto;
+  line-height: 1.45;
+  font-size: 0.8rem;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+}
+
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.step-list li,
+.list-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.55rem 0.62rem;
+  background: #faf7ef;
+}
+
+.step-label {
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.73rem;
+  color: #775546;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.stat {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 0.75rem;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.stat-value {
+  margin-top: 0.2rem;
+  font-size: 1.25rem;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+}
+
+.content-grid,
+.strip-grid,
+.route-grid,
+.hero-grid,
+.calendar-layout {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.content-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.list-card {
+  grid-column: span 6;
+}
+
+.hero-grid {
+  grid-template-columns: 8fr 4fr;
+}
+
+.route-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.route-card {
+  grid-column: span 6;
+}
+
+.route-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-box {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f7f3e8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-box svg {
+  width: 16px;
+  height: 16px;
+}
+
+.route-title {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.city-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.5rem;
+}
+
+.city-link {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fdfaf3;
+  padding: 0.48rem 0.56rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.82rem;
+}
+
+.calendar-layout {
+  grid-template-columns: 8fr 4fr;
+}
+
+.calendar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.22rem;
+}
+
+.calendar-grid {
+  margin-top: 0.7rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.4rem;
+  min-width: 760px;
+}
+
+.weekday {
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  color: #66736d;
+  letter-spacing: 0.06em;
+}
+
+.day-cell {
+  min-height: 112px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0.42rem;
+  background: #fffdf7;
+  display: flex;
+  flex-direction: column;
+  gap: 0.34rem;
+}
+
+.day-cell.outside {
+  background: #f1ece2;
+  color: #79857f;
+}
+
+.day-num {
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.78rem;
+}
+
+.event-chip {
+  border: 1px solid #d5ae99;
+  border-radius: 8px;
+  background: #fde8dd;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.event-chip strong {
+  display: block;
+}
+
+.event-meta {
+  color: #6f4f43;
+  font-size: 0.72rem;
+}
+
+.agenda-list {
+  margin-top: 0.92rem;
+  display: grid;
+  gap: 0.48rem;
+}
+
+.agenda-item {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0.52rem 0.6rem;
+  background: #fcf9f1;
+}
+
+.agenda-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.agenda-sub {
+  margin: 0.18rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.top-ribbon {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.ribbon-group {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.side-stack,
+.metric-stack {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.metric-box {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #f8f4eb;
+  padding: 0.52rem 0.6rem;
+}
+
+.metric-label {
+  color: #6c7772;
+  font-size: 0.77rem;
+}
+
+.metric-value {
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  margin-top: 0.18rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: reveal 0.35s ease forwards;
+}
+
+.delay-1 {
+  animation-delay: 60ms;
+}
+
+.delay-2 {
+  animation-delay: 120ms;
+}
+
+.delay-3 {
+  animation-delay: 180ms;
+}
+
+.long-list {
+  content-visibility: auto;
+  contain-intrinsic-size: 1100px;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .manual-layout,
+  .hero-grid,
+  .calendar-layout,
+  .strip-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .list-card,
+  .route-card {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 620px) {
+  main {
+    width: min(1080px, 94vw);
+    padding-top: 0.8rem;
+  }
+
+  .site-nav,
+  .top-ribbon,
+  .home-hero,
+  .module,
+  .route-card,
+  .calendar-card,
+  .list-card,
+  .hero-core,
+  .hero-side {
+    border-radius: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .day-cell {
+    min-height: 96px;
+  }
+}
