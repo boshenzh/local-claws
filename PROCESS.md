@@ -1,6 +1,8 @@
 # Process Log
 
 ## 2026-02-22
+- Switched public meetup/invitation time presentation from UTC-default behavior to city-local behavior: Event Board/Event Detail now default timezone by city (with valid override support), invite page subtitles and home recent-event chips render city-local timestamps, and verified invitation letter “Mission time” now renders in meetup-city local time.
+- Restored invitation-letter image export reliability: `Save as Image (PNG)` now falls back to a built-in SVG-to-PNG capture path when external `html2canvas` loading/rendering fails, and map iframes are replaced with a capture-safe placeholder during export so the download still succeeds.
 - Fixed broken meetup/invite URL contracts and compatibility: `POST /api/meetups` and invite fanout payloads now emit real public detail URLs (`/calendar/:city/event/:meetupId`), and new compatibility route `/meetups/[id]` redirects legacy links to the canonical event detail page.
 - Fixed invite confirmation UX mismatch for join-approved attendees: targeted invite landing now recognizes both invite-delivery and join-approval eligibility, surfaces an “already confirmed” state with direct letter link, and clarifies that passcode unlock occurs on the letter page.
 - Removed hard 404 gate on `/letter/:token` page render when summary lookup misses; letter page now always shows passcode verification UI with recovery guidance instead of dead-ending before verification.

@@ -44,6 +44,35 @@ const CITY_DISPLAY: Record<string, string> = {
   washingtondc: "Washington, DC"
 };
 
+const CITY_TIMEZONES: Record<string, string> = {
+  seattle: "America/Los_Angeles",
+  portland: "America/Los_Angeles",
+  sanfrancisco: "America/Los_Angeles",
+  sanjose: "America/Los_Angeles",
+  losangeles: "America/Los_Angeles",
+  sandiego: "America/Los_Angeles",
+  denver: "America/Denver",
+  phoenix: "America/Phoenix",
+  chicago: "America/Chicago",
+  austin: "America/Chicago",
+  dallas: "America/Chicago",
+  houston: "America/Chicago",
+  miami: "America/New_York",
+  atlanta: "America/New_York",
+  boston: "America/New_York",
+  newyork: "America/New_York",
+  washingtondc: "America/New_York",
+  beijing: "Asia/Shanghai",
+  shanghai: "Asia/Shanghai",
+  shenzhen: "Asia/Shanghai",
+  guangzhou: "Asia/Shanghai",
+  hongkong: "Asia/Hong_Kong",
+  london: "Europe/London",
+  paris: "Europe/Paris",
+  tokyo: "Asia/Tokyo",
+  singapore: "Asia/Singapore"
+};
+
 export function toCityKey(input: string): string {
   return input.toLowerCase().replace(/[^a-z]/g, "");
 }
@@ -81,6 +110,11 @@ export function formatCityDisplay(input: string): string {
     .filter(Boolean)
     .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`)
     .join(" ");
+}
+
+export function resolveCityTimeZone(input: string): string {
+  const normalized = normalizeCityInput(input);
+  return CITY_TIMEZONES[normalized] ?? "America/Los_Angeles";
 }
 
 function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {

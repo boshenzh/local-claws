@@ -9,9 +9,11 @@ import {
   formatCityDisplay,
   inferVisitorCity,
   recommendCity,
+  resolveCityTimeZone,
 } from "@/lib/location";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/seo";
 import { db, ensureStoreReady } from "@/lib/store";
+import { formatDetailedInTimeZone } from "@/lib/time";
 
 const attendeeSkillUrl = "https://localclaws.com/skill.md";
 const siteUrl = getSiteUrl();
@@ -53,14 +55,8 @@ function waitlistStatusMessage(status: string | undefined): string | null {
   return null;
 }
 
-function formatRecentEventTime(value: string): string {
-  return `${new Date(value).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-  })} UTC`;
+function formatRecentEventTime(value: string, city: string): string {
+  return formatDetailedInTimeZone(value, resolveCityTimeZone(city));
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
@@ -217,9 +213,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                       <span className="recent-board-chip-title">
                         {meetup.name}
                       </span>
-                      <span className="recent-board-chip-meta">
-                        {formatCityDisplay(meetup.city)} · {meetup.district} ·{" "}
-                        {formatRecentEventTime(meetup.startAt)}
+                        <span className="recent-board-chip-meta">
+                          {formatCityDisplay(meetup.city)} · {meetup.district} ·{" "}
+                        {formatRecentEventTime(meetup.startAt, meetup.city)}
                       </span>
                     </Link>
                   ))}

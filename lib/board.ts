@@ -1,4 +1,5 @@
-import { DEFAULT_PUBLIC_RADIUS_KM, DEFAULT_TZ } from "@/lib/constants";
+import { DEFAULT_PUBLIC_RADIUS_KM } from "@/lib/constants";
+import { resolveCityTimeZone } from "@/lib/location";
 import { db } from "@/lib/store";
 import { formatFriendlyInTimeZone, isValidIanaTimeZone } from "@/lib/time";
 
@@ -52,11 +53,11 @@ export function normalizeBoardView(input: string | undefined): BoardView {
   return "cards";
 }
 
-export function normalizeBoardTimeZone(input: string | undefined): string {
+export function normalizeBoardTimeZone(input: string | undefined, city?: string): string {
   if (input && isValidIanaTimeZone(input)) {
     return input;
   }
-  return DEFAULT_TZ;
+  return city ? resolveCityTimeZone(city) : "America/Los_Angeles";
 }
 
 export function parseTagQuery(input: string | undefined): string[] {
@@ -82,7 +83,7 @@ export function getPublicMeetupDetail(input: {
 
   if (!meetup) return null;
 
-  const timezone = normalizeBoardTimeZone(input.tz);
+  const timezone = normalizeBoardTimeZone(input.tz, meetup.city);
   const confirmedCount = db.attendees.filter(
     (attendee) => attendee.meetupId === meetup.id && attendee.status === "confirmed"
   ).length;

@@ -1,5 +1,5 @@
-import { DEFAULT_TZ } from "@/lib/constants";
 import { db } from "@/lib/store";
+import { resolveCityTimeZone } from "@/lib/location";
 import { formatFriendlyInTimeZone, formatInTimeZone, isValidIanaTimeZone, toIcsUtcStamp } from "@/lib/time";
 
 export type CalendarEvent = {
@@ -28,7 +28,7 @@ export function getCityCalendar(input: {
   tz?: string;
   tags?: string[];
 }): { city: string; timezone: string; from: string; to: string; events: CalendarEvent[] } {
-  const timezone = input.tz && isValidIanaTimeZone(input.tz) ? input.tz : DEFAULT_TZ;
+  const timezone = input.tz && isValidIanaTimeZone(input.tz) ? input.tz : resolveCityTimeZone(input.city);
   const from = input.from ?? new Date().toISOString().slice(0, 10);
   const to = input.to ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10);
 

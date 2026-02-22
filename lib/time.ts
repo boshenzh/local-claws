@@ -86,6 +86,25 @@ export function formatFriendlyInTimeZone(isoDate: string, timeZone: string, now:
   return `${dayLabel}, ${timeLabel}`;
 }
 
+export function formatDetailedInTimeZone(isoDate: string, timeZone: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) {
+    return isoDate;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short"
+  }).format(date);
+}
+
 export function toIcsUtcStamp(isoDate: string): string {
   const date = new Date(isoDate);
   const pad = (value: number) => String(value).padStart(2, "0");

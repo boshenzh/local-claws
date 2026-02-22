@@ -1,15 +1,43 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { LogoMark } from "@/app/components/logo-mark";
 import { resolveInviteLanding } from "@/lib/attendance";
-import { formatCityDisplay } from "@/lib/location";
+import { formatCityDisplay, resolveCityTimeZone } from "@/lib/location";
 import { ensureStoreReady } from "@/lib/store";
+import { formatDetailedInTimeZone } from "@/lib/time";
 
 type InvitePageProps = {
   params: Promise<{ inviteId: string }>;
 };
+
+const ATTENDEE_SKILL_URL =
+  "https://www.localclaws.com/.well-known/localclaws-attendee-skill.md";
+
+function firstForwardedValue(value: string | null): string | null {
+  if (!value) return null;
+  const first = value.split(",")[0]?.trim();
+  return first || null;
+}
+
+function getRequestOrigin(headerStore: Headers): string {
+  const forwardedHost = firstForwardedValue(
+    headerStore.get("x-forwarded-host"),
+  );
+  const host = forwardedHost ?? headerStore.get("host");
+  const forwardedProto = firstForwardedValue(
+    headerStore.get("x-forwarded-proto"),
+  );
+  const protocol =
+    forwardedProto ?? (host?.includes("localhost") ? "http" : "https");
+
+  if (!host) {
+    return "https://www.localclaws.com";
+  }
+  return `${protocol}://${host}`;
+}
 
 export const metadata: Metadata = {
   title: "Invitation",
@@ -22,7 +50,8 @@ export const metadata: Metadata = {
 
 export default async function InvitePage({ params }: InvitePageProps) {
   await ensureStoreReady();
-  const { inviteId } = await params;
+  const [headerStore, routeParams] = await Promise.all([headers(), params]);
+  const { inviteId } = routeParams;
   const landing = resolveInviteLanding(inviteId);
   if (!landing) {
     notFound();
@@ -30,6 +59,10 @@ export default async function InvitePage({ params }: InvitePageProps) {
 
   const meetup = landing.meetup;
   const city = formatCityDisplay(meetup.city);
+  const meetupTimezone = resolveCityTimeZone(meetup.city);
+  const requestOrigin = getRequestOrigin(headerStore);
+  const inviteUrl = `${requestOrigin}/invite/${encodeURIComponent(inviteId)}`;
+  const clawdbotPrompt = `Read ${ATTENDEE_SKILL_URL}, then use this invite link ${inviteUrl} to join/signup for this meetup and tell me the next step.`;
 
   return (
     <main>
@@ -52,7 +85,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
         <p className="kicker">Invitation</p>
         <h1 className="home-title">{meetup.name}</h1>
         <p className="home-subtitle">
-          {city} | {meetup.district} | {new Date(meetup.startAt).toLocaleString()}
+          {city} | {meetup.district} |{" "}
+          {formatDetailedInTimeZone(meetup.startAt, meetupTimezone)}
         </p>
       </section>
 
@@ -118,6 +152,14 @@ export default async function InvitePage({ params }: InvitePageProps) {
               </p>
             </>
           )}
+        </article>
+
+        <article className="module">
+          <h2>Use this in ClawDBot</h2>
+          <p className="tutorial-copy">
+            Paste this into ClawDBot to join this meetup workflow.
+          </p>
+          <pre className="code-block">{clawdbotPrompt}</pre>
         </article>
       </section>
     </main>

@@ -1,5 +1,7 @@
 import { verifyLetterPasscode } from "@/lib/attendance";
+import { resolveCityTimeZone } from "@/lib/location";
 import { ensureStoreReady, persistStore } from "@/lib/store";
+import { formatDetailedInTimeZone } from "@/lib/time";
 import { NextResponse } from "next/server";
 
 function escapeHtml(value: string): string {
@@ -386,6 +388,10 @@ export async function POST(
     exactLocationLat: details.exactLocationLat,
     exactLocationLon: details.exactLocationLon
   });
+  const localTimeText = formatDetailedInTimeZone(
+    details.exactTime,
+    resolveCityTimeZone(details.city)
+  );
 
   const letterDataJson = serializeForInlineScript({
     meetupName: details.meetupName,
@@ -420,7 +426,7 @@ export async function POST(
           <section class="meta-grid" aria-label="Invitation details">
             <div class="meta-card">
               <p class="meta-label">Mission time</p>
-              <p class="meta-value">${escapeHtml(new Date(details.exactTime).toLocaleString())}</p>
+              <p class="meta-value">${escapeHtml(localTimeText)}</p>
             </div>
             <div class="meta-card">
               <p class="meta-label">Rendezvous zone</p>
@@ -470,7 +476,6 @@ export async function POST(
       </article>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
     <script>
       (() => {
         const LETTER_DATA = ${letterDataJson};
@@ -544,6 +549,71 @@ export async function POST(
           URL.revokeObjectURL(url);
         };
 
+        const replaceMapIframesForCapture = (node) => {
+          node.querySelectorAll('iframe').forEach((frame) => {
+            const replacement = document.createElement('div');
+            replacement.style.border = '2px solid #111';
+            replacement.style.borderRadius = '10px';
+            replacement.style.background = '#fef3d4';
+            replacement.style.color = '#3c2a17';
+            replacement.style.padding = '10px';
+            replacement.style.height = '220px';
+            replacement.style.display = 'grid';
+            replacement.style.placeItems = 'center';
+            replacement.style.font = "700 12px/1.4 'Press Start 2P', monospace";
+            replacement.textContent = 'Map preview available in browser. Use Open Map for live navigation.';
+            frame.replaceWith(replacement);
+          });
+        };
+
+        const cloneForCapture = (captureNode) => {
+          const cloned = captureNode.cloneNode(true);
+          cloned.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+          cloned.style.margin = '0';
+          cloned.querySelectorAll('*').forEach((el) => {
+            el.style.animation = 'none';
+            el.style.transition = 'none';
+          });
+          replaceMapIframesForCapture(cloned);
+          return cloned;
+        };
+
+        const loadImage = (src) =>
+          new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = reject;
+            image.src = src;
+          });
+
+        const captureViaSvgFallback = async (captureNode) => {
+          const width = captureNode.scrollWidth;
+          const height = captureNode.scrollHeight;
+          const cloned = cloneForCapture(captureNode);
+          const serialized = new XMLSerializer().serializeToString(cloned);
+          const svg = [
+            '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"' + width + '\" height=\"' + height + '\" viewBox=\"0 0 ' + width + ' ' + height + '\">',
+            '<foreignObject width=\"100%\" height=\"100%\">',
+            serialized,
+            '</foreignObject>',
+            '</svg>'
+          ].join('');
+          const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+          const image = await loadImage(svgUrl);
+          const canvas = document.createElement('canvas');
+          canvas.width = width * 2;
+          canvas.height = height * 2;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            throw new Error('Canvas context unavailable');
+          }
+          context.setTransform(2, 0, 0, 2, 0, 0);
+          context.fillStyle = '#f6d38d';
+          context.fillRect(0, 0, width, height);
+          context.drawImage(image, 0, 0);
+          return canvas.toDataURL('image/png');
+        };
+
         calendarBtn?.addEventListener('click', () => {
           try {
             const ics = buildIcs();
@@ -556,32 +626,35 @@ export async function POST(
         });
 
         imageBtn?.addEventListener('click', async () => {
+          setStatus('Packing invite card...');
           try {
             const captureNode = document.getElementById('invite-letter-capture');
             if (!captureNode) {
               setStatus('Capture target missing.');
               return;
             }
-
-            if (!window.html2canvas) {
-              setStatus('Image tool still loading. Try again in a moment.');
-              return;
+            let dataUrl;
+            if (window.html2canvas) {
+              try {
+                const canvas = await window.html2canvas(captureNode, {
+                  scale: 2,
+                  backgroundColor: '#f6d38d',
+                  useCORS: true,
+                  logging: false,
+                  width: captureNode.scrollWidth,
+                  height: captureNode.scrollHeight,
+                  windowWidth: Math.max(document.documentElement.clientWidth, captureNode.scrollWidth),
+                  windowHeight: Math.max(document.documentElement.clientHeight, captureNode.scrollHeight),
+                  scrollX: 0,
+                  scrollY: -window.scrollY
+                });
+                dataUrl = canvas.toDataURL('image/png');
+              } catch {
+                dataUrl = await captureViaSvgFallback(captureNode);
+              }
+            } else {
+              dataUrl = await captureViaSvgFallback(captureNode);
             }
-
-            const canvas = await window.html2canvas(captureNode, {
-              scale: 2,
-              backgroundColor: '#f6d38d',
-              useCORS: true,
-              logging: false,
-              width: captureNode.scrollWidth,
-              height: captureNode.scrollHeight,
-              windowWidth: Math.max(document.documentElement.clientWidth, captureNode.scrollWidth),
-              windowHeight: Math.max(document.documentElement.clientHeight, captureNode.scrollHeight),
-              scrollX: 0,
-              scrollY: -window.scrollY
-            });
-
-            const dataUrl = canvas.toDataURL('image/png');
             const filename = safeSlug(LETTER_DATA.meetupName) + '-invite-card.png';
             const anchor = document.createElement('a');
             anchor.href = dataUrl;

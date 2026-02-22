@@ -190,7 +190,7 @@ export default async function EventBoardPage({
 
   const view = normalizeBoardView(query.view);
   const tags = parseTagQuery(query.tags);
-  const timezone = normalizeBoardTimeZone(query.tz);
+  const timezone = normalizeBoardTimeZone(query.tz, city);
 
   const calendar = getCityCalendar({
     city,

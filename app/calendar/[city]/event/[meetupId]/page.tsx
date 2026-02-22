@@ -7,6 +7,7 @@ import { getPublicMeetupDetail, normalizeBoardTimeZone, normalizeBoardView } fro
 import { formatCityDisplay } from "@/lib/location";
 import { getSiteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
+import { formatDetailedInTimeZone } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +79,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   await ensureStoreReady();
   const [{ city, meetupId }, query] = await Promise.all([params, searchParams]);
 
-  const timezone = normalizeBoardTimeZone(query.tz);
+  const timezone = normalizeBoardTimeZone(query.tz, city);
   const view = normalizeBoardView(query.view);
   const detail = getPublicMeetupDetail({
     city,
@@ -192,12 +193,16 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               {detail.district}
             </li>
             <li>
-              <div className="step-label">Exact start (local)</div>
+              <div className="step-label">Start (friendly)</div>
               {detail.startLocal}
             </li>
             <li>
-              <div className="step-label">Exact start (UTC)</div>
-              {new Date(detail.startAt).toISOString()}
+              <div className="step-label">Start (city local time)</div>
+              {formatDetailedInTimeZone(detail.startAt, timezone)}
+            </li>
+            <li>
+              <div className="step-label">Timezone</div>
+              {timezone}
             </li>
             <li>
               <div className="step-label">Spots remaining</div>
