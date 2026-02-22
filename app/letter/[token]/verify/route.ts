@@ -11,6 +11,28 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+function serializeForInlineScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+function buildExactMinimapSrc(details: {
+  exactLocation: string;
+  exactLocationLat?: number | null;
+  exactLocationLon?: number | null;
+}): string {
+  const query =
+    typeof details.exactLocationLat === "number" && typeof details.exactLocationLon === "number"
+      ? `${details.exactLocationLat},${details.exactLocationLon}`
+      : details.exactLocation;
+
+  return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=16&output=embed`;
+}
+
 function retroDocument(title: string, body: string): string {
   return `<!doctype html>
 <html lang="en">
@@ -28,6 +50,8 @@ function retroDocument(title: string, body: string): string {
         --muted: #6b4e37;
         --gold: #ffce4d;
         --danger: #c84536;
+        --mint: #00bf8f;
+        --rose: #d9527a;
       }
       * { box-sizing: border-box; }
       body {
@@ -43,7 +67,7 @@ function retroDocument(title: string, body: string): string {
         place-items: center;
       }
       .letter-shell {
-        width: min(860px, 100%);
+        width: min(900px, 100%);
         border: 4px solid #111;
         background: #1f2937;
         padding: 12px;
@@ -62,6 +86,7 @@ function retroDocument(title: string, body: string): string {
           );
         padding: 28px 24px;
         position: relative;
+        overflow: hidden;
       }
       .stamp {
         position: absolute;
@@ -73,7 +98,62 @@ function retroDocument(title: string, body: string): string {
         padding: 6px 9px;
         font: 700 11px/1 'Press Start 2P', monospace;
         text-transform: uppercase;
+        animation: stampPulse 2.4s ease-in-out infinite;
       }
+      .party-burst {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+      }
+      .party-burst span {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        opacity: 0;
+        animation: pop 2.8s ease-in-out infinite;
+      }
+      .party-burst span:nth-child(1) { left: 8%; top: 14%; background: #ff5f5f; animation-delay: 0.1s; }
+      .party-burst span:nth-child(2) { left: 22%; top: 7%; background: #31c48d; animation-delay: 0.5s; }
+      .party-burst span:nth-child(3) { left: 76%; top: 10%; background: #59a8ff; animation-delay: 0.2s; }
+      .party-burst span:nth-child(4) { left: 90%; top: 22%; background: #ffbf47; animation-delay: 0.8s; }
+      .party-burst span:nth-child(5) { left: 12%; top: 74%; background: #d275ff; animation-delay: 1.2s; }
+      .party-burst span:nth-child(6) { left: 84%; top: 76%; background: #ff7ab8; animation-delay: 1.5s; }
+
+      .letter-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .letter-logo {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+      }
+      .letter-brand-copy {
+        font: 700 10px/1.4 'Press Start 2P', monospace;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .party-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 4px 0 12px;
+      }
+      .party-chip {
+        border: 2px solid #111;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font: 700 10px/1 'Press Start 2P', monospace;
+        text-transform: uppercase;
+        color: #111;
+        background: #fff;
+      }
+      .party-chip.mint { background: color-mix(in srgb, var(--mint) 45%, white); }
+      .party-chip.rose { background: color-mix(in srgb, var(--rose) 35%, white); }
+
       .kicker {
         font: 700 11px/1 'Press Start 2P', monospace;
         text-transform: uppercase;
@@ -112,6 +192,53 @@ function retroDocument(title: string, body: string): string {
         margin: 0;
         font: 33px/1 'VT323', monospace;
       }
+      .utility-grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+      }
+      .radar-card {
+        border: 3px solid rgba(58, 38, 21, 0.45);
+        background: rgba(255, 255, 255, 0.36);
+        padding: 12px;
+      }
+      .radar-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .radar-chip {
+        border: 2px solid #111;
+        border-radius: 999px;
+        background: #d7ffef;
+        color: #0f4b35;
+        padding: 4px 8px;
+        font: 700 9px/1 'Press Start 2P', monospace;
+        text-transform: uppercase;
+      }
+      .radar-wrap {
+        margin-top: 8px;
+        border: 2px solid #111;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #111;
+      }
+      .location-description {
+        margin-top: 10px;
+        border: 2px solid rgba(58, 38, 21, 0.45);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.36);
+        padding: 10px;
+        font: 30px/1.08 'VT323', monospace;
+      }
+      .radar-map {
+        display: block;
+        width: 100%;
+        height: 220px;
+        border: 0;
+      }
       h2 {
         margin: 18px 0 10px;
         font: 700 14px/1.2 'Press Start 2P', monospace;
@@ -139,7 +266,7 @@ function retroDocument(title: string, body: string): string {
         gap: 10px;
         flex-wrap: wrap;
       }
-      a.btn {
+      .btn {
         display: inline-block;
         border: 3px solid #111;
         background: #fff;
@@ -147,8 +274,19 @@ function retroDocument(title: string, body: string): string {
         text-decoration: none;
         padding: 10px 12px;
         font: 700 10px/1.4 'Press Start 2P', monospace;
+        cursor: pointer;
       }
-      a.btn:hover { background: #e5e7eb; }
+      .btn:hover { background: #e5e7eb; }
+      .btn:focus-visible {
+        outline: 3px solid #59a8ff;
+        outline-offset: 2px;
+      }
+      .status-note {
+        margin: 8px 0 0;
+        min-height: 18px;
+        font: 700 10px/1.4 'Press Start 2P', monospace;
+        color: #2f3f53;
+      }
       .error-title {
         margin: 0;
         font: 700 18px/1.25 'Press Start 2P', monospace;
@@ -158,10 +296,25 @@ function retroDocument(title: string, body: string): string {
         margin: 10px 0 0;
         font: 34px/1 'VT323', monospace;
       }
+      @keyframes stampPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      @keyframes pop {
+        0%, 40%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+        15% { opacity: 1; transform: translateY(-8px) scale(1); }
+      }
       @media (max-width: 640px) {
         .letter { padding: 18px 14px; }
         h1 { font-size: 16px; line-height: 1.35; }
         .subtitle { font-size: 26px; }
+        .radar-map { height: 190px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .stamp,
+        .party-burst span {
+          animation: none;
+        }
       }
     </style>
   </head>
@@ -201,6 +354,10 @@ export async function POST(
       `<main class="letter-shell">
         <section class="letter">
           <div class="stamp">LOCKED</div>
+          <div class="letter-brand">
+            <img class="letter-logo" src="/localclaws-logo.png" alt="LocalClaws logo" />
+            <div class="letter-brand-copy">LocalClaws</div>
+          </div>
           <p class="kicker">LocalClaws // Invitation Terminal</p>
           <h1 class="error-title">ACCESS DENIED</h1>
           <p class="error-copy">${escapeHtml(result.message)}</p>
@@ -223,46 +380,222 @@ export async function POST(
     details.attendees.length > 0
       ? details.attendees.map((name) => `<li>${escapeHtml(name)}</li>`).join("")
       : "<li>Awaiting more confirmed participants</li>";
+
+  const mapEmbedSrc = buildExactMinimapSrc({
+    exactLocation: details.exactLocation,
+    exactLocationLat: details.exactLocationLat,
+    exactLocationLon: details.exactLocationLon
+  });
+
+  const letterDataJson = serializeForInlineScript({
+    meetupName: details.meetupName,
+    exactTime: details.exactTime,
+    exactLocation: details.exactLocation,
+    exactLocationLink: details.exactLocationLink ?? "",
+    hostNotes: details.hostNotes ?? "",
+    durationMinutes: 90
+  });
+
   const html = retroDocument(
     "Invitation Letter",
     `<main class="letter-shell">
-      <article class="letter">
+      <article class="letter" id="invite-letter-capture">
+        <div class="party-burst" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <div class="stamp">ACCESS GRANTED</div>
+        <div class="letter-brand">
+          <img class="letter-logo" src="/localclaws-logo.png" alt="LocalClaws logo" />
+          <div class="letter-brand-copy">LocalClaws</div>
+        </div>
+        <div class="party-chips">
+          <span class="party-chip mint">VIP CONFIRMED</span>
+          <span class="party-chip rose">MISSION READY</span>
+        </div>
         <p class="kicker">Official LocalClaws Meetup Invitation</p>
         <h1>${escapeHtml(details.meetupName)}</h1>
         <p class="subtitle">Your entry pass has been verified.</p>
 
         <div class="rule"></div>
 
-        <section class="meta-grid" aria-label="Invitation details">
-          <div class="meta-card">
-            <p class="meta-label">Mission time</p>
-            <p class="meta-value">${escapeHtml(new Date(details.exactTime).toLocaleString())}</p>
-          </div>
-          <div class="meta-card">
-            <p class="meta-label">Rendezvous zone</p>
-            <p class="meta-value">${escapeHtml(details.exactLocation)}</p>
-          </div>
+        <section>
+          <section class="meta-grid" aria-label="Invitation details">
+            <div class="meta-card">
+              <p class="meta-label">Mission time</p>
+              <p class="meta-value">${escapeHtml(new Date(details.exactTime).toLocaleString())}</p>
+            </div>
+            <div class="meta-card">
+              <p class="meta-label">Rendezvous zone</p>
+              <p class="meta-value">${escapeHtml(details.exactLocation)}</p>
+            </div>
+          </section>
+
+          <h2>Party roster</h2>
+          <ul>${attendees}</ul>
+
+          <h2>Host notes</h2>
+          <div class="notes">${escapeHtml(details.hostNotes || "No special notes from host.")}</div>
         </section>
-        ${
-          details.exactLocationLink
-            ? `<div class="actions">
-          <a class="btn" href="${escapeHtml(details.exactLocationLink)}" target="_blank" rel="noopener noreferrer">Open map link</a>
-        </div>`
-            : ""
-        }
 
-        <h2>Party roster</h2>
-        <ul>${attendees}</ul>
+        <section class="utility-grid">
+          <article class="radar-card">
+            <div class="radar-head">
+              <h2>Rendezvous radar</h2>
+              <span class="radar-chip">live</span>
+            </div>
+            <div class="radar-wrap">
+              <iframe
+                title="Exact location minimap"
+                src="${escapeHtml(mapEmbedSrc)}"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                class="radar-map"
+              ></iframe>
+            </div>
+            <p class="meta-label" style="margin-top:10px;">Location description</p>
+            <div class="location-description">${escapeHtml(details.exactLocation)}</div>
+            <p class="kicker" style="margin-top:10px;">Exact location unlocked for confirmed attendee.</p>
+          </article>
+        </section>
 
-        <h2>Host notes</h2>
-        <div class="notes">${escapeHtml(details.hostNotes || "No special notes from host.")}</div>
-
-        <div class="actions">
+        <div class="actions" aria-label="Party pack actions">
+          <button class="btn" id="save-calendar-btn" type="button">Save to Calendar (.ics)</button>
+          <button class="btn" id="save-image-btn" type="button">Save as Image (PNG)</button>
+          ${
+            details.exactLocationLink
+              ? `<a class="btn" href="${escapeHtml(details.exactLocationLink)}" target="_blank" rel="noopener noreferrer">Open Map</a>`
+              : ""
+          }
           <a class="btn" href="/">Return to board</a>
         </div>
+        <p id="party-status" class="status-note" role="status" aria-live="polite"></p>
       </article>
-    </main>`
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+    <script>
+      (() => {
+        const LETTER_DATA = ${letterDataJson};
+        const calendarBtn = document.getElementById('save-calendar-btn');
+        const imageBtn = document.getElementById('save-image-btn');
+        const statusNode = document.getElementById('party-status');
+
+        const setStatus = (message) => {
+          if (statusNode) statusNode.textContent = message;
+        };
+
+        const safeSlug = (value) => {
+          const slug = (value || 'localclaws-invitation')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+          return slug || 'localclaws-invitation';
+        };
+
+        const toIcsUtcStamp = (isoValue) => {
+          const date = new Date(isoValue);
+          const pad = (n) => String(n).padStart(2, '0');
+          return (
+            date.getUTCFullYear().toString() +
+            pad(date.getUTCMonth() + 1) +
+            pad(date.getUTCDate()) +
+            'T' +
+            pad(date.getUTCHours()) +
+            pad(date.getUTCMinutes()) +
+            pad(date.getUTCSeconds()) +
+            'Z'
+          );
+        };
+
+        const addMinutes = (isoValue, minutes) => {
+          const date = new Date(isoValue);
+          return new Date(date.getTime() + minutes * 60 * 1000).toISOString();
+        };
+
+        const buildIcs = () => {
+          const startAt = LETTER_DATA.exactTime;
+          const endAt = addMinutes(startAt, LETTER_DATA.durationMinutes || 90);
+          const lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//LocalClaws//Invitation Letter//EN',
+            'CALSCALE:GREGORIAN',
+            'BEGIN:VEVENT',
+            'UID:' + safeSlug(LETTER_DATA.meetupName) + '@localclaws.com',
+            'DTSTAMP:' + toIcsUtcStamp(new Date().toISOString()),
+            'DTSTART:' + toIcsUtcStamp(startAt),
+            'DTEND:' + toIcsUtcStamp(endAt),
+            'SUMMARY:' + LETTER_DATA.meetupName,
+            'LOCATION:' + LETTER_DATA.exactLocation,
+            'DESCRIPTION:' + [LETTER_DATA.hostNotes, LETTER_DATA.exactLocationLink].filter(Boolean).join(' | '),
+            'END:VEVENT',
+            'END:VCALENDAR'
+          ];
+          return lines.join('\\r\\n');
+        };
+
+        const downloadText = (filename, text, contentType) => {
+          const blob = new Blob([text], { type: contentType });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+        };
+
+        calendarBtn?.addEventListener('click', () => {
+          try {
+            const ics = buildIcs();
+            const filename = safeSlug(LETTER_DATA.meetupName) + '-localclaws.ics';
+            downloadText(filename, ics, 'text/calendar;charset=utf-8');
+            setStatus('Calendar crystalized.');
+          } catch {
+            setStatus('Calendar export failed. Please try again.');
+          }
+        });
+
+        imageBtn?.addEventListener('click', async () => {
+          try {
+            const captureNode = document.getElementById('invite-letter-capture');
+            if (!captureNode) {
+              setStatus('Capture target missing.');
+              return;
+            }
+
+            if (!window.html2canvas) {
+              setStatus('Image tool still loading. Try again in a moment.');
+              return;
+            }
+
+            const canvas = await window.html2canvas(captureNode, {
+              scale: 2,
+              backgroundColor: '#f6d38d',
+              useCORS: true,
+              logging: false,
+              width: captureNode.scrollWidth,
+              height: captureNode.scrollHeight,
+              windowWidth: Math.max(document.documentElement.clientWidth, captureNode.scrollWidth),
+              windowHeight: Math.max(document.documentElement.clientHeight, captureNode.scrollHeight),
+              scrollX: 0,
+              scrollY: -window.scrollY
+            });
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const filename = safeSlug(LETTER_DATA.meetupName) + '-invite-card.png';
+            const anchor = document.createElement('a');
+            anchor.href = dataUrl;
+            anchor.download = filename;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            setStatus('Invite card saved to inventory.');
+          } catch {
+            setStatus('Capture failed. Try again after map finishes loading.');
+          }
+        });
+      })();
+    </script>`
   );
 
   return new Response(html, {

@@ -61,6 +61,18 @@ main {
   font-weight: 700;
 }
 
+.brand-with-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+}
+
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
@@ -430,6 +442,12 @@ main {
   flex-wrap: wrap;
 }
 
+.ribbon-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .side-stack,
 .metric-stack {
   display: grid;
@@ -578,6 +596,12 @@ main {
   display: flex;
   align-items: center;
   gap: 0.58rem;
+}
+
+.retro-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .retro-brand-dot {
@@ -843,7 +867,7 @@ main {
   gap: 0.52rem;
 }
 
-.waitlist-form input,
+.waitlist-form input[type="email"],
 .waitlist-form button {
   min-height: 44px;
   border: 2px solid var(--retro-line);
@@ -851,7 +875,7 @@ main {
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
 }
 
-.waitlist-form input {
+.waitlist-form input[type="email"] {
   padding: 0 0.7rem;
   background: #fffbea;
   color: var(--retro-ink);
@@ -867,10 +891,115 @@ main {
   font-size: 0.78rem;
 }
 
+.waitlist-consent {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  color: #443b28;
+}
+
+.waitlist-consent input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 16px;
+  height: 16px;
+  accent-color: #1c5f49;
+}
+
+.waitlist-consent a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+.waitlist-consent a:hover {
+  color: #0e4f6b;
+}
+
 .waitlist-note {
   margin: 0.58rem 0 0;
   color: #584d35;
   font-size: 0.83rem;
+}
+
+.retro-footer {
+  margin-top: 0.95rem;
+  padding: 0.95rem 1rem;
+  border: 2px solid var(--retro-line);
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #2f2a1f;
+  background:
+    linear-gradient(160deg, rgb(255 255 255 / 28%), transparent 44%),
+    var(--retro-panel);
+}
+
+.retro-footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.retro-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.retro-footer-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.retro-footer-title {
+  margin: 0;
+  color: var(--retro-ink);
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.retro-footer-tagline {
+  margin: 0.16rem 0 0;
+  color: #4f432d;
+  font-size: 0.86rem;
+}
+
+.retro-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.retro-footer-link {
+  font-size: 0.7rem;
+}
+
+.retro-footer-bottom {
+  margin-top: 0.7rem;
+  padding-top: 0.62rem;
+  border-top: 2px dashed rgb(47 42 31 / 40%);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  color: #55482f;
+  font-size: 0.78rem;
+}
+
+.retro-footer-bottom p {
+  margin: 0;
+}
+
+.retro-footer-note {
+  max-width: 62ch;
 }
 
 .waitlist-feedback {
@@ -1137,6 +1266,25 @@ main {
 
   .waitlist-form {
     grid-template-columns: 1fr;
+  }
+
+  .retro-footer {
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 #2f2a1f;
+  }
+
+  .retro-footer-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .retro-footer-links {
+    justify-content: flex-start;
+  }
+
+  .retro-footer-bottom {
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .board-toolbar {
@@ -1486,7 +1634,7 @@ main {
   padding: 0.72rem 0.82rem;
 }
 
-.waitlist-form input,
+.waitlist-form input[type="email"],
 .board-picker select {
   border: 2px solid var(--line);
   border-radius: 5px;

@@ -238,9 +238,12 @@ export function verifyLetterPasscode(token: string, passcode: string) {
     ok: true as const,
     details: {
       meetupName: meetup.name,
+      city: meetup.city,
       exactTime: meetup.startAt,
       exactLocation: location.exactLocation,
       exactLocationLink: location.exactLocationLink,
+      exactLocationLat: meetup.privateLocationLat ?? null,
+      exactLocationLon: meetup.privateLocationLon ?? null,
       attendees,
       hostNotes: meetup.hostNotes || ""
     }

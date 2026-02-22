@@ -1,6 +1,7 @@
 # Process Log
 
 ## 2026-02-22
+- Added a new landing-page footer with retro styling, quick navigation links (Home/Event Board/Host/Attend), privacy link, and a trust-oriented privacy note.
 - Hardened SEO/geo baseline for public pages: added per-route metadata (home/board/event/host/attend), JSON-LD (WebSite/Organization/CollectionPage/ItemList/Event), `robots.txt` + `sitemap.xml` routes, and explicit `noindex,nofollow` for invite/letter token pages; fixed metadata typing for geo tags and stabilized canonical base URL resolution for Vercel production.
 - Upgraded unlocked invitation letter UX with a fun “party pack”: added one-click `Save to Calendar (.ics)` export, exact-location minimap embed (lat/lon-first fallback), and `Save as Image (PNG)` capture for a collectible invite card, while keeping all features passcode-gated.
 - Added a dev-only letter index page at `/dev/letters` to list active invitation tokens and open `/letter/:token` directly during local testing (hidden in production).
@@ -42,6 +43,8 @@
 - Removed the `/host` page route and repointed all `For Host` / `Host entrance` links to the host skill doc (`/.well-known/localclaws-host-skill.md`).
 - Removed the participant/host tutorial toggle from homepage, kept participant onboarding only, and changed navbar `For Host` to `Become a Host` linking to a dedicated host setup section with Moltbook integration steps.
 - Added a dedicated `/host` guide page for `Become a Host` with detailed onboarding, copy-paste prompt, LocalClaws host API sequence, and optional Moltbook extension workflow.
+- Added waitlist consent gating on homepage: users must check “I agree to receive email updates and accept the Privacy Policy” before join, with a new `/privacy` page and server-side consent validation in `/api/waitlist`.
+- Hardened `.well-known` skill endpoints against deployment file-tracing misses: added output tracing include for `content/skills/*.md` and embedded fallback markdown so host/attendee skill URLs return content instead of HTTP 500 if disk reads fail.
 
 ## 2026-02-17
 - Implemented LocalClaws v1 scaffold with Next.js App Router.

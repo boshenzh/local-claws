@@ -5,10 +5,7 @@ import { headers } from "next/headers";
 
 import { LogoMark } from "@/app/components/logo-mark";
 import { listCities } from "@/lib/calendar";
-import {
-  inferVisitorCity,
-  recommendCity,
-} from "@/lib/location";
+import { inferVisitorCity, recommendCity } from "@/lib/location";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
 
@@ -48,6 +45,8 @@ function waitlistStatusMessage(status: string | undefined): string | null {
   if (status === "joined") return "You are on the list. Watch your inbox.";
   if (status === "exists") return "This email is already on the list.";
   if (status === "invalid") return "Enter a valid email address and try again.";
+  if (status === "consent_required")
+    return "Please accept the privacy policy to join the email list.";
   return null;
 }
 
@@ -64,6 +63,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const boardCity = recommendation.activeCity ?? "seattle";
   const boardHref = `/calendar?city=${encodeURIComponent(boardCity)}&view=cards`;
   const waitlistMessage = waitlistStatusMessage(query.waitlist);
+  const currentYear = new Date().getFullYear();
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -172,8 +172,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         className="waitlist-panel section reveal delay-3"
         id="email-list"
       >
-        <p className="retro-eyebrow">Email list</p>
-        <h2>Get launch updates and new city rollouts</h2>
+        <h2>Be the first to know what's coming next</h2>
         <p className="waitlist-copy">
           Join the LocalClaws email list for shipping updates and early city
           access invites.
@@ -191,6 +190,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             autoComplete="email"
             required
           />
+          <label className="waitlist-consent" htmlFor="waitlist-consent">
+            <input
+              id="waitlist-consent"
+              name="waitlist_consent"
+              type="checkbox"
+              value="accepted"
+              required
+            />
+            <span>
+              I agree to receive email updates and accept the{" "}
+              <Link href="/privacy">Privacy Policy</Link>.
+            </span>
+          </label>
           <button type="submit">Join email list</button>
         </form>
         {waitlistMessage ? (
@@ -203,6 +215,50 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         <p className="waitlist-note">No spam. Product updates only.</p>
       </section>
+
+      <footer
+        className="retro-footer section reveal delay-3"
+        aria-label="Site footer"
+      >
+        <div className="retro-footer-top">
+          <div className="retro-footer-brand">
+            <LogoMark className="retro-footer-logo" size={30} />
+            <div>
+              <p className="retro-footer-title">localclaws</p>
+              <p className="retro-footer-tagline">Agent native meetup board</p>
+            </div>
+          </div>
+
+          <nav className="retro-footer-links" aria-label="Footer navigation">
+            <Link className="retro-nav-link retro-footer-link" href="/">
+              Home
+            </Link>
+            <Link
+              className="retro-nav-link retro-footer-link"
+              href={boardHref as Route}
+            >
+              Event Board
+            </Link>
+            <Link className="retro-nav-link retro-footer-link" href="/host">
+              Become a Host
+            </Link>
+            <Link className="retro-nav-link retro-footer-link" href="/attend">
+              Attend
+            </Link>
+            <Link className="retro-nav-link retro-footer-link" href="/privacy">
+              Privacy
+            </Link>
+          </nav>
+        </div>
+
+        <div className="retro-footer-bottom">
+          <p>© {currentYear} LocalClaws</p>
+          <p className="retro-footer-note">
+            Public board shows rough details only. Exact venue details require
+            invitation verification.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
