@@ -1,6 +1,7 @@
 # Process Log
 
 ## 2026-02-22
+- Added a rolling “Recent LocalClaws event boards” strip under attendee setup on the landing page, showcasing recent public offline meetup cards with direct links to event details.
 - Added a new landing-page footer with retro styling, quick navigation links (Home/Event Board/Host/Attend), privacy link, and a trust-oriented privacy note.
 - Hardened SEO/geo baseline for public pages: added per-route metadata (home/board/event/host/attend), JSON-LD (WebSite/Organization/CollectionPage/ItemList/Event), `robots.txt` + `sitemap.xml` routes, and explicit `noindex,nofollow` for invite/letter token pages; fixed metadata typing for geo tags and stabilized canonical base URL resolution for Vercel production.
 - Upgraded unlocked invitation letter UX with a fun “party pack”: added one-click `Save to Calendar (.ics)` export, exact-location minimap embed (lat/lon-first fallback), and `Save as Image (PNG)` capture for a collectible invite card, while keeping all features passcode-gated.

@@ -819,6 +819,87 @@ main {
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
 }
 
+.recent-boards {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 2px dashed rgb(47 42 31 / 35%);
+}
+
+.recent-boards h3 {
+  margin: 0;
+  color: var(--retro-ink);
+  font-family: "IBM Plex Serif", "Georgia", serif;
+  font-size: 1rem;
+}
+
+.recent-boards-copy {
+  margin: 0.32rem 0 0;
+  color: #3b3426;
+  font-size: 0.88rem;
+}
+
+.recent-boards-empty {
+  margin: 0.5rem 0 0;
+  color: #5d4f35;
+  font-size: 0.84rem;
+}
+
+.recent-boards-marquee {
+  margin-top: 0.58rem;
+  border: 2px solid var(--retro-line);
+  border-radius: 12px;
+  background: #fff8df;
+  overflow: hidden;
+}
+
+.recent-boards-track {
+  display: flex;
+  gap: 0.52rem;
+  width: max-content;
+  padding: 0.52rem;
+}
+
+.recent-boards-track.is-rolling {
+  animation: recent-board-roll 26s linear infinite;
+}
+
+.recent-board-chip {
+  min-width: 260px;
+  border: 2px solid var(--retro-line);
+  border-radius: 10px;
+  box-shadow: 2px 2px 0 #2f2a1f;
+  background: #fff0c8;
+  padding: 0.48rem 0.56rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.recent-board-chip-title {
+  color: #1f1a10;
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.recent-board-chip-meta {
+  color: #5a4d33;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+@keyframes recent-board-roll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .trust-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1268,6 +1349,10 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .recent-board-chip {
+    min-width: 220px;
+  }
+
   .retro-footer {
     border-radius: 14px;
     box-shadow: 3px 3px 0 #2f2a1f;
@@ -1660,6 +1745,12 @@ main {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-boards-track.is-rolling {
+    animation: none;
   }
 }
 

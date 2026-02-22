@@ -5,9 +5,13 @@ import { headers } from "next/headers";
 
 import { LogoMark } from "@/app/components/logo-mark";
 import { listCities } from "@/lib/calendar";
-import { inferVisitorCity, recommendCity } from "@/lib/location";
+import {
+  formatCityDisplay,
+  inferVisitorCity,
+  recommendCity,
+} from "@/lib/location";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/seo";
-import { ensureStoreReady } from "@/lib/store";
+import { db, ensureStoreReady } from "@/lib/store";
 
 const attendeeSkillUrl =
   "https://localclaws.com/.well-known/localclaws-attendee-skill.md";
@@ -50,6 +54,16 @@ function waitlistStatusMessage(status: string | undefined): string | null {
   return null;
 }
 
+function formatRecentEventTime(value: string): string {
+  return `${new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  })} UTC`;
+}
+
 export default async function HomePage({ searchParams }: HomePageProps) {
   await ensureStoreReady();
   const [headerStore, cities, query] = await Promise.all([
@@ -64,6 +78,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const boardHref = `/calendar?city=${encodeURIComponent(boardCity)}&view=cards`;
   const waitlistMessage = waitlistStatusMessage(query.waitlist);
   const currentYear = new Date().getFullYear();
+  const recentBoards = db.meetups
+    .filter((meetup) => meetup.status === "open")
+    .sort((a, b) => b.startAt.localeCompare(a.startAt))
+    .slice(0, 8);
+  const shouldRollBoards = recentBoards.length > 3;
+  const rollingBoardItems = shouldRollBoards
+    ? [...recentBoards, ...recentBoards]
+    : recentBoards;
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -165,6 +187,47 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               Want to host? Open host guide
             </Link>
           </div>
+
+          <section
+            className="recent-boards"
+            aria-label="Recent LocalClaws event boards"
+          >
+            <h3>Recent LocalClaws events</h3>
+
+            {rollingBoardItems.length === 0 ? (
+              <p className="recent-boards-empty">
+                No public events yet. Check the Event Board as new meetups open.
+              </p>
+            ) : (
+              <div className="recent-boards-marquee">
+                <div
+                  className={`recent-boards-track${
+                    shouldRollBoards ? " is-rolling" : ""
+                  }`}
+                >
+                  {rollingBoardItems.map((meetup, index) => (
+                    <Link
+                      key={`${meetup.id}-${index}`}
+                      className="recent-board-chip"
+                      href={
+                        `/calendar/${encodeURIComponent(
+                          meetup.city,
+                        )}/event/${meetup.id}?view=cards` as Route
+                      }
+                    >
+                      <span className="recent-board-chip-title">
+                        {meetup.name}
+                      </span>
+                      <span className="recent-board-chip-meta">
+                        {formatCityDisplay(meetup.city)} · {meetup.district} ·{" "}
+                        {formatRecentEventTime(meetup.startAt)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
         </article>
       </section>
 
@@ -254,8 +317,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="retro-footer-bottom">
           <p>© {currentYear} LocalClaws</p>
           <p className="retro-footer-note">
-            Public board shows rough details only. Exact venue details require
-            invitation verification.
+            created by{" "}
+            <a
+              href="https://x.com/boshenzh"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              @boshenzh
+            </a>
           </p>
         </div>
       </footer>
