@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 
 import { resolveInviteLanding } from "@/lib/attendance";
 import { formatCityDisplay } from "@/lib/location";
+import { ensureStoreReady } from "@/lib/store";
 
 type InvitePageProps = {
   params: Promise<{ inviteId: string }>;
 };
 
 export default async function InvitePage({ params }: InvitePageProps) {
+  await ensureStoreReady();
   const { inviteId } = await params;
   const landing = resolveInviteLanding(inviteId);
   if (!landing) {

@@ -1,8 +1,9 @@
 import { authorizeRequest } from "@/lib/auth";
 import { eventsSinceCursorForAgent, subscribeAgent } from "@/lib/events";
 import { jsonError } from "@/lib/http";
-import { createInviteId } from "@/lib/invitations";
 import { metricGaugeDelta, metricIncrement } from "@/lib/metrics";
+import { serializeNotificationForAgent } from "@/lib/notifications";
+import { ensureStoreReady } from "@/lib/store";
 import type { NotificationEvent } from "@/lib/types";
 
 function encodeSseChunk(eventName: string, payload: unknown): Uint8Array {
@@ -11,26 +12,11 @@ function encodeSseChunk(eventName: string, payload: unknown): Uint8Array {
 }
 
 function pushEvent(controller: ReadableStreamDefaultController<Uint8Array>, event: NotificationEvent, agentId: string): void {
-  const inviteId = createInviteId(event.payload.meetupId, agentId);
-  controller.enqueue(
-    encodeSseChunk("notification", {
-      event_id: event.id,
-      event_type: event.eventType,
-      created_at: event.createdAt,
-      invite: {
-        meetup_id: event.payload.meetupId,
-        city: event.payload.city,
-        district: event.payload.district,
-        start_at: event.payload.startAt,
-        tags: event.payload.tags,
-        public_url: event.payload.publicUrl,
-        invite_url: `/invite/${inviteId}`
-      }
-    })
-  );
+  controller.enqueue(encodeSseChunk("notification", serializeNotificationForAgent(event, agentId)));
 }
 
 export async function GET(request: Request) {
+  await ensureStoreReady();
   const auth = authorizeRequest(request, "invite:receive");
   if (!auth.ok) {
     return jsonError(auth.error, auth.status);

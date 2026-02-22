@@ -1,15 +1,9 @@
-import { db } from "@/lib/store";
+import { db, nextGlobalId } from "@/lib/store";
 import { createInviteId, generateFunPasscode, generateInvitationToken, hashPasscode, parseInviteId, verifyPasscode } from "@/lib/invitations";
 import type { AttendeeRecord, Meetup } from "@/lib/types";
 
 const HOURLY_ATTEMPT_LIMIT = 5;
 const TOTAL_ATTEMPT_LIMIT = 10;
-
-let attendeeCounter = 900;
-function nextAttendeeId(): string {
-  attendeeCounter += 1;
-  return `at_${attendeeCounter}`;
-}
 
 type InviteLanding = {
   mode: "targeted" | "generic";
@@ -27,8 +21,15 @@ function hasDeliveryForAgentMeetup(agentId: string, meetupId: string): boolean {
   return db.notificationDeliveries.some((delivery) => {
     if (delivery.agentId !== agentId) return false;
     const event = db.notificationEvents.find((entry) => entry.id === delivery.eventId);
-    return event?.meetupId === meetupId;
+    if (!event || event.meetupId !== meetupId) return false;
+    return event.eventType === "invite.created" || event.eventType === "invite.updated";
   });
+}
+
+function hasApprovedJoinRequest(agentId: string, meetupId: string): boolean {
+  return db.joinRequests.some(
+    (request) => request.meetupId === meetupId && request.attendeeAgentId === agentId && request.status === "approved"
+  );
 }
 
 export function resolveInviteLanding(inviteId: string): InviteLanding | null {
@@ -65,7 +66,7 @@ function upsertAttendee(meetupId: string, agentId: string): AttendeeRecord {
   }
 
   const attendee: AttendeeRecord = {
-    id: nextAttendeeId(),
+    id: nextGlobalId("at"),
     meetupId,
     agentId,
     inviteId: createInviteId(meetupId, agentId),
@@ -88,6 +89,13 @@ export function confirmAttendanceForAgent(meetupId: string, agentId: string) {
   const meetup = db.meetups.find((entry) => entry.id === meetupId);
   if (!meetup) {
     return { ok: false as const, error: "Meetup not found" };
+  }
+  if (meetup.status !== "open") {
+    return { ok: false as const, error: `Meetup is not open (current: ${meetup.status})` };
+  }
+  const eligible = hasDeliveryForAgentMeetup(agentId, meetupId) || hasApprovedJoinRequest(agentId, meetupId);
+  if (!eligible) {
+    return { ok: false as const, error: "Agent is not eligible to confirm this meetup yet" };
   }
 
   const attendee = upsertAttendee(meetupId, agentId);
@@ -137,6 +145,21 @@ export function letterSummary(token: string) {
     city: meetup.city,
     district: meetup.district
   };
+}
+
+function resolvePrivateLocationForLetter(meetup: Meetup): {
+  exactLocation: string;
+  exactLocationLink: string | null;
+} {
+  const label = meetup.privateLocationLabel?.trim();
+  const legacy = meetup.privateLocation?.trim();
+  const district = meetup.district.trim();
+  const note = meetup.privateLocationNote?.trim();
+  const link = meetup.privateLocationLink?.trim() || null;
+
+  const base = label || legacy || district;
+  const exactLocation = note ? `${base} (${note})` : base;
+  return { exactLocation, exactLocationLink: link };
 }
 
 function updateHourlyWindow(attendee: AttendeeRecord): void {
@@ -209,13 +232,15 @@ export function verifyLetterPasscode(token: string, passcode: string) {
   const attendees = db.attendees
     .filter((entry) => entry.meetupId === meetup.id && entry.status === "confirmed")
     .map((entry) => db.agents.get(entry.agentId)?.displayName ?? entry.agentId);
+  const location = resolvePrivateLocationForLetter(meetup);
 
   return {
     ok: true as const,
     details: {
       meetupName: meetup.name,
       exactTime: meetup.startAt,
-      exactLocation: meetup.privateLocation || meetup.district,
+      exactLocation: location.exactLocation,
+      exactLocationLink: location.exactLocationLink,
       attendees,
       hostNotes: meetup.hostNotes || ""
     }

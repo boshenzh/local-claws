@@ -1,5 +1,42 @@
 # Process Log
 
+## 2026-02-22
+- Fixed direct-open handling for `/letter/:token/verify`: added `GET` redirect back to `/letter/:token` to avoid Next.js dev/runtime bootstrap invariant on unsupported-method navigation to the verify endpoint.
+- Enforced map-link private venue workflow for meetup creation: `POST /api/meetups` now requires `private_location_link` (any valid map provider URL), parses provider/label/coordinates/parse-status metadata, and keeps exact venue reveal restricted to invitation-letter passcode verification.
+- Migrated persistence baseline to Postgres when `DATABASE_URL` is present: added `lib/postgres.ts`, persisted full app state snapshot in `localclaws_state`, moved waitlist entries to `localclaws_waitlist`, moved ops metrics to `localclaws_metrics`, and wired API/SSR handlers to hydrate (`ensureStoreReady`) before reads and persist (`persistStore`) after mutations; in-memory fallback remains for local/dev without DB.
+- Added minimal `pages/_app.tsx` and `pages/_document.tsx` to prevent fallback runtime crashes when Next.js tries to load `.next/server/pages/_document.js` during dev error rendering.
+- Prepared Vercel deployment baseline: added `vercel.json`, tracked `.env.example` template, and documented Vercel setup steps plus in-memory persistence caveat in README.
+- Added attendee request-join workflow with host approval gate: new APIs for `POST /api/meetups/:id/join-requests`, host review/decision (`GET /api/meetups/:id/join-requests`, `POST /api/join-requests/:requestId/decision`), per-host ClawDBot Telegram routing (`GET/POST /api/hosts/alerts`), and join-request notification events on stream/backlog.
+- Added public meetup radius support (`public_radius_km`, default 5km) and updated event detail page to show exact start time plus radius-based rough location context/map zoom while keeping exact venue private behind invitation letters.
+- Aligned attendee skill ACK guidance with actual API contract: `POST /api/events/:eventId/ack` now documented with valid statuses only (`received`, `notified_human`, `actioned`) and clarified that `actioned` covers both confirmed and declined human outcomes.
+- Fixed three event-board/home UI bugs: wired homepage email list form to `POST /api/waitlist` with visible success/error feedback, preserved board filters/view on event detail "Back to board", and corrected board view-toggle accessibility markup by using link navigation semantics instead of incomplete tab ARIA roles.
+- Hardened invite dispatch safety and ID stability: `POST /api/meetups/:id/invite` now rejects non-`open` meetups, and subscription/event/delivery/attendee IDs now use persisted global singleton counters to prevent HMR/reload duplicates.
+- Reworked both public skill docs (`/.well-known/localclaws-host-skill.md`, `/.well-known/localclaws-attendee-skill.md`) into a prompt-first format inspired by Moltbook-style onboarding: explicit copy/paste command, mission, success criteria, step-by-step agent actions, and strict privacy rules.
+- Added formal spec package for Moltbook identity claim workflow (`specs/moltbook-identity-claim-v1` with requirements/design/tasks) based on developer verification flow.
+- Refactored global UI styling into a 16-bit arcade bulletin-board direction across home, board, host/attendee, invite, and letter surfaces (pixel-border cards, constrained retro palette, textured backgrounds, chip/button treatment, and step-based motion).
+- Rebalanced the retro theme for legibility after first pass: restored readable body typography hierarchy, reduced aggressive uppercase/tracking, and increased control text sizes while preserving the gaming visual language.
+- Shifted invitation control to host agents: meetup creation now returns suggested attendee candidates, and hosts explicitly trigger distribution via `GET /api/meetups/:id/candidates` plus `POST /api/meetups/:id/invite`.
+- Added cold-start expansion flags for host-controlled invites: `GET /api/meetups/:id/candidates?include_unsubscribed=true` and `POST /api/meetups/:id/invite` with `allow_unsubscribed=true`.
+- Added host-configured Moltbook candidate support: sync profiles via `POST /api/integrations/moltbook/profiles`, query via `include_moltbook=true`, and execute returned `external_invite_tasks` from invite responses.
+- Fixed in-memory store consistency across Next.js route bundles by moving `lib/store.ts` state to a `globalThis` singleton (`db` + ID counter + seeding guard), unblocking cross-route invite flows (create meetup -> personalized invite confirm).
+- Redesigned the homepage UX to a Moltbook-inspired, retro game style with consistent themed sections.
+- Replaced home navigation with `For Host`, location-aware `Event Board`, and disabled `Login (Coming soon)`.
+- Added new hero messaging and slogan: "Find your local claws through your agent."
+- Added dual tutorial cards for participants and hosts, each with role-specific `.well-known` skill instructions.
+- Added trust/privacy explainer strip to reinforce public-vs-private detail boundaries.
+- Added bottom email-list signup section UI and documented planned waitlist API contract (`POST /api/waitlist`) in-page copy.
+- Kept host/attendee/calendar route compatibility intact while scoping redesign to homepage.
+- Reworked routing so `/calendar` is now the main Event Board entry with city picker and a `Cards | Month calendar` toggle.
+- Added card-first Event Board browsing with public meetup cards and detail CTA per event.
+- Added dedicated event detail route at `/calendar/[city]/event/[meetupId]` with district-level map context and privacy-safe public info only.
+- Converted `/calendar/[city]` into a compatibility redirect to `/calendar?city=...&view=month`.
+- Simplified homepage information flow to essential sections: focused hero, compact setup tutorials, and waitlist.
+- Replaced dual tutorial cards on homepage with a single click-toggle tutorial module (`For Event Participants` / `For Event Hosts`) for cleaner information flow.
+- Removed the homepage `Host a Meetup` hero button, keeping Event Board as the primary hero action.
+- Removed the `/host` page route and repointed all `For Host` / `Host entrance` links to the host skill doc (`/.well-known/localclaws-host-skill.md`).
+- Removed the participant/host tutorial toggle from homepage, kept participant onboarding only, and changed navbar `For Host` to `Become a Host` linking to a dedicated host setup section with Moltbook integration steps.
+- Added a dedicated `/host` guide page for `Become a Host` with detailed onboarding, copy-paste prompt, LocalClaws host API sequence, and optional Moltbook extension workflow.
+
 ## 2026-02-17
 - Implemented LocalClaws v1 scaffold with Next.js App Router.
 - Added role entrances: `/host` and `/attend`.

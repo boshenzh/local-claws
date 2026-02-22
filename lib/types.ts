@@ -29,6 +29,7 @@ export type AgentSubscription = {
   id: string;
   agentId: string;
   city: string;
+  homeDistrict: string | null;
   radiusKm: number;
   tags: string[];
   quietHours: QuietHours | null;
@@ -37,16 +38,51 @@ export type AgentSubscription = {
   updatedAt: string;
 };
 
+export type HostAlertConfig = {
+  hostAgentId: string;
+  enabled: boolean;
+  clawdbotWebhookUrl: string;
+  telegramChatId: string;
+  telegramThreadId: string | null;
+  updatedAt: string;
+};
+
+export type MoltbookProfile = {
+  id: string;
+  hostAgentId: string;
+  source: "moltbook";
+  externalId: string;
+  displayName: string;
+  city: string;
+  district: string;
+  tags: string[];
+  inviteUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PrivateLocationProvider = "google_maps" | "apple_maps" | "amap" | "other";
+export type PrivateLocationParseStatus = "parsed_exact" | "parsed_partial" | "unresolved";
+
 export type Meetup = {
   id: string;
   name: string;
   city: string;
   district: string;
+  publicRadiusKm: number;
   startAt: string;
   tags: string[];
   maxParticipants: number;
   hostAgentId: string;
   privateLocation: string;
+  privateLocationLink?: string;
+  privateLocationProvider?: PrivateLocationProvider | null;
+  privateLocationProviderHost?: string;
+  privateLocationLabel?: string;
+  privateLocationLat?: number | null;
+  privateLocationLon?: number | null;
+  privateLocationParseStatus?: PrivateLocationParseStatus;
+  privateLocationNote?: string;
   hostNotes: string;
   status: "open" | "closed" | "canceled" | "quarantined";
   createdAt: string;
@@ -69,13 +105,33 @@ export type AttendeeRecord = {
   createdAt: string;
 };
 
+export type JoinRequestStatus = "pending" | "approved" | "declined" | "canceled";
+
+export type JoinRequest = {
+  id: string;
+  meetupId: string;
+  hostAgentId: string;
+  attendeeAgentId: string;
+  status: JoinRequestStatus;
+  note: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+  decidedByAgentId: string | null;
+  decisionReason: string | null;
+  hostAlertStatus: "pending" | "sent" | "failed";
+  hostAlertError: string | null;
+};
+
 export type NotificationEventType =
   | "invite.created"
   | "invite.updated"
   | "invite.withdrawn"
+  | "join.requested"
+  | "join.approved"
+  | "join.declined"
   | "system.notice";
 
-export type NotificationEventPayload = {
+export type InviteNotificationPayload = {
   meetupId: string;
   city: string;
   district: string;
@@ -83,6 +139,38 @@ export type NotificationEventPayload = {
   tags: string[];
   publicUrl: string;
 };
+
+export type JoinRequestedNotificationPayload = {
+  requestId: string;
+  meetupId: string;
+  attendeeAgentId: string;
+  attendeeDisplayName: string;
+  city: string;
+  district: string;
+  startAt: string;
+  tags: string[];
+  note: string | null;
+};
+
+export type JoinDecisionNotificationPayload = {
+  requestId: string;
+  meetupId: string;
+  status: "approved" | "declined";
+  reason: string | null;
+  invitationUrl: string | null;
+  inviteUrl: string | null;
+  passcode: string | null;
+};
+
+export type SystemNoticeNotificationPayload = {
+  message: string;
+};
+
+export type NotificationEventPayload =
+  | InviteNotificationPayload
+  | JoinRequestedNotificationPayload
+  | JoinDecisionNotificationPayload
+  | SystemNoticeNotificationPayload;
 
 export type NotificationEvent = {
   id: string;

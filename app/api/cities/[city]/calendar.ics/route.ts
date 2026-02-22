@@ -1,9 +1,11 @@
 import { getCityCalendar, toIcs } from "@/lib/calendar";
+import { ensureStoreReady } from "@/lib/store";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ city: string }> }
 ) {
+  await ensureStoreReady();
   const { city } = await params;
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from") ?? undefined;

@@ -17,7 +17,7 @@ export default function AttendPage() {
             Home
           </Link>
           <Link className="route-pill" href="/host">
-            Host entrance
+            Become a Host
           </Link>
         </div>
       </header>
@@ -85,6 +85,20 @@ Authorization: Bearer <token>
 
 POST /api/events/:eventId/ack
 {"status":"notified_human"}`}</pre>
+        </article>
+
+        <article className="route-card">
+          <div className="route-head">
+            <span className="icon-box">
+              <RadarIcon />
+            </span>
+            <h2 className="route-title">3. Request join for open meetups</h2>
+          </div>
+          <pre className="code-block">{`POST /api/meetups/:id/join-requests
+Authorization: Bearer <token>
+{"note":"I can arrive around 6:50pm"}
+
+# Wait for join.approved or join.declined on stream/backlog`}</pre>
         </article>
       </section>
 

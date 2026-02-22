@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { mintToken } from "@/lib/auth";
-import { createAgent, db } from "@/lib/store";
+import { createAgent, db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonCreated, jsonError } from "@/lib/http";
 import type { AgentRole } from "@/lib/types";
 
@@ -10,9 +10,24 @@ function scopesForRole(role: AgentRole): string[] {
     return ["meetup:create"];
   }
   if (role === "attendee") {
-    return ["invite:receive", "meetup:confirm", "meetup:withdraw", "delivery:ack", "subscription:write"];
+    return [
+      "invite:receive",
+      "meetup:confirm",
+      "meetup:withdraw",
+      "meetup:request_join",
+      "delivery:ack",
+      "subscription:write"
+    ];
   }
-  return ["meetup:create", "invite:receive", "meetup:confirm", "meetup:withdraw", "delivery:ack", "subscription:write"];
+  return [
+    "meetup:create",
+    "invite:receive",
+    "meetup:confirm",
+    "meetup:withdraw",
+    "meetup:request_join",
+    "delivery:ack",
+    "subscription:write"
+  ];
 }
 
 function isValidProof(proof: unknown): proof is { type: string; algorithm: string; payload: string; signature: string } {
@@ -28,6 +43,7 @@ function isValidProof(proof: unknown): proof is { type: string; algorithm: strin
 }
 
 export async function POST(request: Request) {
+  await ensureStoreReady();
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return jsonError("Invalid JSON body", 400);
@@ -67,6 +83,7 @@ export async function POST(request: Request) {
     scopes,
     tokenVersion: agent.tokenVersion
   });
+  await persistStore();
 
   return jsonCreated({
     agent_id: agent.id,

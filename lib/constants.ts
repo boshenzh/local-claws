@@ -18,6 +18,7 @@ export const TRUST_TIER_DAILY_FANOUT: Record<TrustTier, number> = {
 };
 
 export const DEFAULT_TZ = "UTC";
+export const DEFAULT_PUBLIC_RADIUS_KM = 5;
 
 export const HOST_SKILL_VERSION = "1.0.0";
 export const ATTENDEE_SKILL_VERSION = "1.0.0";

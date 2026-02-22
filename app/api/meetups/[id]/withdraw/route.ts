@@ -1,11 +1,12 @@
 import { authorizeRequest } from "@/lib/auth";
-import { db } from "@/lib/store";
+import { db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonError, jsonOk } from "@/lib/http";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await ensureStoreReady();
   const body = await request.json().catch(() => null);
   const auth = authorizeRequest(request, "meetup:withdraw", {
     legacyAgentId: typeof body?.agent_id === "string" ? body.agent_id : undefined
@@ -28,5 +29,6 @@ export async function POST(
   attendee.invitationToken = null;
   attendee.passcodeHash = null;
   attendee.lockedUntil = null;
+  await persistStore();
   return jsonOk({ status: "withdrawn", meetup_id: id });
 }

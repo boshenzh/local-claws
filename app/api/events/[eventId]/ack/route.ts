@@ -2,11 +2,13 @@ import { authorizeRequest } from "@/lib/auth";
 import { markDeliveryState } from "@/lib/fanout";
 import { updateCursor } from "@/lib/events";
 import { jsonError, jsonOk } from "@/lib/http";
+import { ensureStoreReady, persistStore } from "@/lib/store";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
+  await ensureStoreReady();
   const body = await request.json().catch(() => null);
   const auth = authorizeRequest(request, "delivery:ack", {
     legacyAgentId: typeof body?.agent_id === "string" ? body.agent_id : undefined
@@ -35,5 +37,6 @@ export async function POST(
   }
 
   updateCursor(auth.agent.id, eventId);
+  await persistStore();
   return jsonOk({ ok: true, delivery });
 }

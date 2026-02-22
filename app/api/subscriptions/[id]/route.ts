@@ -1,5 +1,5 @@
 import { authorizeRequest } from "@/lib/auth";
-import { db } from "@/lib/store";
+import { db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonError, jsonOk } from "@/lib/http";
 import type { QuietHours } from "@/lib/types";
 
@@ -13,6 +13,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await ensureStoreReady();
   const body = await request.json().catch(() => null);
   const auth = authorizeRequest(request, "subscription:write", {
     legacyAgentId: typeof body?.agent_id === "string" ? body.agent_id : undefined
@@ -31,6 +32,13 @@ export async function PATCH(
   if (typeof body?.city === "string") {
     subscription.city = body.city.toLowerCase();
   }
+  if (typeof body?.home_district === "string") {
+    const normalized = body.home_district.trim();
+    subscription.homeDistrict = normalized || null;
+  }
+  if (body?.home_district === null) {
+    subscription.homeDistrict = null;
+  }
   if (typeof body?.radius_km === "number" && body.radius_km > 0 && body.radius_km <= 200) {
     subscription.radiusKm = body.radius_km;
   }
@@ -45,5 +53,6 @@ export async function PATCH(
   }
 
   subscription.updatedAt = new Date().toISOString();
+  await persistStore();
   return jsonOk(subscription);
 }

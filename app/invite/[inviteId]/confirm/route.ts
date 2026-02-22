@@ -1,4 +1,5 @@
 import { confirmAttendanceByInviteId } from "@/lib/attendance";
+import { ensureStoreReady, persistStore } from "@/lib/store";
 
 function escapeHtml(value: string): string {
   return value
@@ -13,6 +14,7 @@ export async function POST(
   _request: Request,
   { params }: { params: Promise<{ inviteId: string }> }
 ) {
+  await ensureStoreReady();
   const { inviteId } = await params;
   const result = confirmAttendanceByInviteId(inviteId);
 
@@ -30,6 +32,8 @@ export async function POST(
       headers: { "Content-Type": "text/html; charset=utf-8" }
     });
   }
+
+  await persistStore();
 
   const html = `<!doctype html>
 <html><head><meta charset="utf-8" /><title>Invitation Confirmed</title></head>

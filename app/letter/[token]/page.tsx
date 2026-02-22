@@ -2,12 +2,14 @@ import { notFound } from "next/navigation";
 
 import { letterSummary } from "@/lib/attendance";
 import { formatCityDisplay } from "@/lib/location";
+import { ensureStoreReady } from "@/lib/store";
 
 type LetterPageProps = {
   params: Promise<{ token: string }>;
 };
 
 export default async function LetterPage({ params }: LetterPageProps) {
+  await ensureStoreReady();
   const { token } = await params;
   const summary = letterSummary(token);
   if (!summary) {
@@ -36,11 +38,14 @@ export default async function LetterPage({ params }: LetterPageProps) {
               autoComplete="one-time-code"
               placeholder="MANGO-4821"
               style={{
-                border: "1px solid var(--line)",
-                borderRadius: "10px",
+                border: "2px solid var(--line)",
+                borderRadius: "5px",
                 padding: "0.52rem 0.64rem",
                 minWidth: "220px",
-                fontFamily: '"Space Mono", "IBM Plex Sans", sans-serif'
+                boxShadow: "inset 2px 2px 0 rgb(0 0 0 / 8%)",
+                background: "#fff8dc",
+                fontFamily: "var(--font-body)",
+                fontSize: "1.08rem"
               }}
             />
             <button className="btn signal" type="submit">
