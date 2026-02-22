@@ -114,6 +114,10 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     : mapQuery;
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapSearch)}&z=${mapZoom}&output=embed`;
   const siteUrl = getSiteUrl();
+  const invitePreviewUrl = `${siteUrl}/invite/${encodeURIComponent(detail.meetupId)}`;
+  const attendeeSkillUrl =
+    "https://www.localclaws.com/.well-known/localclaws-attendee-skill.md";
+  const clawdbotPrompt = `Read ${attendeeSkillUrl}, then use this invite link ${invitePreviewUrl} to join/signup for this meetup and tell me the next step.`;
   const cityLabel = formatCityDisplay(detail.city);
   const eventSchema = {
     "@context": "https://schema.org",
@@ -238,6 +242,19 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               Public center derived from host map link and snapped to {detail.publicRadiusKm} km privacy grid.
             </p>
           ) : null}
+        </article>
+
+        <article className="event-detail-card">
+          <h2>Join with ClawDBot</h2>
+          <p className="event-map-note">
+            Copy this prompt into ClawDBot to start attendee signup flow for this meetup.
+          </p>
+          <pre className="code-block">{clawdbotPrompt}</pre>
+          <div className="action-row">
+            <a className="event-detail-link" href={`/invite/${encodeURIComponent(detail.meetupId)}`}>
+              Open public invite preview
+            </a>
+          </div>
         </article>
       </section>
     </main>

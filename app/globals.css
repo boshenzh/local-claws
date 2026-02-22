@@ -168,6 +168,71 @@ main {
   gap: 0.85rem;
 }
 
+.invite-page {
+  width: min(920px, 92vw);
+}
+
+.invite-hero {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.invite-title {
+  margin-bottom: 0.15rem;
+}
+
+.invite-subtitle {
+  color: #2b3a34;
+}
+
+.invite-chip-row {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.invite-chip {
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: #ffedbc;
+  color: #2d2411;
+  padding: 0.2rem 0.58rem;
+  box-shadow: 2px 2px 0 #2b220f;
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.invite-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.invite-card {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.invite-card-primary {
+  min-height: 100%;
+}
+
+.invite-copy,
+.invite-note {
+  margin: 0;
+}
+
+.invite-code-block {
+  margin-top: 0.15rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
 .module,
 .route-card,
 .calendar-card,
@@ -503,6 +568,7 @@ main {
 
 @media (max-width: 980px) {
   .manual-layout,
+  .invite-grid,
   .hero-grid,
   .calendar-layout,
   .strip-grid {

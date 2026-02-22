@@ -65,7 +65,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   const clawdbotPrompt = `Read ${ATTENDEE_SKILL_URL}, then use this invite link ${inviteUrl} to join/signup for this meetup and tell me the next step.`;
 
   return (
-    <main>
+    <main className="invite-page">
       <header className="site-nav reveal">
         <div className="brand brand-with-logo">
           <LogoMark className="brand-logo" size={30} />
@@ -81,43 +81,29 @@ export default async function InvitePage({ params }: InvitePageProps) {
         </nav>
       </header>
 
-      <section className="home-hero reveal delay-1">
+      <section className="home-hero invite-hero reveal delay-1">
         <p className="kicker">Invitation</p>
-        <h1 className="home-title">{meetup.name}</h1>
-        <p className="home-subtitle">
+        <h1 className="home-title invite-title">{meetup.name}</h1>
+        <p className="home-subtitle invite-subtitle">
           {city} | {meetup.district} |{" "}
           {formatDetailedInTimeZone(meetup.startAt, meetupTimezone)}
         </p>
+        <div className="invite-chip-row" aria-label="Public meetup details">
+          <span className="invite-chip">City: {city}</span>
+          <span className="invite-chip">District: {meetup.district}</span>
+          <span className="invite-chip">Spots: {meetup.maxParticipants}</span>
+          <span className="invite-chip">
+            Tags: {meetup.tags.join(", ") || "none"}
+          </span>
+        </div>
       </section>
 
-      <section className="manual-layout section reveal delay-2">
-        <article className="module">
-          <h2>Public details</h2>
-          <ul className="step-list">
-            <li>
-              <div className="step-label">City</div>
-              {city}
-            </li>
-            <li>
-              <div className="step-label">District</div>
-              {meetup.district}
-            </li>
-            <li>
-              <div className="step-label">Tags</div>
-              {meetup.tags.join(", ") || "none"}
-            </li>
-            <li>
-              <div className="step-label">Spots</div>
-              {meetup.maxParticipants}
-            </li>
-          </ul>
-        </article>
-
-        <article className="module">
-          <h2>Confirm attendance</h2>
+      <section className="invite-grid section reveal delay-2">
+        <article className="module invite-card invite-card-primary">
+          <h2>Next step</h2>
           {landing.mode === "targeted" && landing.canConfirm ? (
             <>
-              <p className="home-subtitle">
+              <p className="home-subtitle invite-copy">
                 Click confirm to generate your invitation letter link and fun passcode.
               </p>
               <form action={`/invite/${inviteId}/confirm`} method="post" className="action-row">
@@ -125,11 +111,13 @@ export default async function InvitePage({ params }: InvitePageProps) {
                   Confirm and get invitation letter
                 </button>
               </form>
-              <p className="home-subtitle">After confirm, open your letter URL and enter passcode to unlock exact location.</p>
+              <p className="home-subtitle invite-copy">
+                After confirm, open your letter URL and enter passcode to unlock exact location.
+              </p>
             </>
           ) : landing.mode === "targeted" && landing.isConfirmed && landing.letterUrl ? (
             <>
-              <p className="home-subtitle">
+              <p className="home-subtitle invite-copy">
                 You are already confirmed for this meetup. Open your invitation letter and enter your passcode to reveal precise location details.
               </p>
               <div className="action-row">
@@ -139,27 +127,30 @@ export default async function InvitePage({ params }: InvitePageProps) {
               </div>
             </>
           ) : landing.mode === "targeted" ? (
-            <p className="home-subtitle">
+            <p className="home-subtitle invite-copy">
               This personalized invite is not confirmable yet. Wait for invite delivery or join approval, then use the same link to confirm.
             </p>
           ) : (
             <>
-              <p className="home-subtitle">
-                This is a public invite preview. Ask your agent for your personalized confirmation link.
+              <p className="home-subtitle invite-copy">
+                This is a public invite preview. Paste the prompt on the right into ClawDBot to start signup.
               </p>
-              <p className="home-subtitle">
+              <p className="home-subtitle invite-copy">
                 Passcode entry happens on your invitation letter page (`/letter/&lt;token&gt;`) after confirmation.
               </p>
             </>
           )}
         </article>
 
-        <article className="module">
-          <h2>Use this in ClawDBot</h2>
-          <p className="tutorial-copy">
+        <article className="module invite-card">
+          <h2>Paste into ClawDBot</h2>
+          <p className="tutorial-copy invite-copy">
             Paste this into ClawDBot to join this meetup workflow.
           </p>
-          <pre className="code-block">{clawdbotPrompt}</pre>
+          <pre className="code-block invite-code-block">{clawdbotPrompt}</pre>
+          <p className="muted invite-note">
+            ClawDBot will guide you through confirmation and passcode delivery.
+          </p>
         </article>
       </section>
     </main>
