@@ -18,18 +18,64 @@ const CITY_COORDS: Record<string, { lat: number; lon: number }> = {
   washingtondc: { lat: 38.9072, lon: -77.0369 }
 };
 
-function normalizeCityKey(input: string): string {
+const CITY_ALIASES: Record<string, string> = {
+  "san francisco": "sanfrancisco",
+  "san-francisco": "sanfrancisco",
+  sf: "sanfrancisco",
+  "san jose": "sanjose",
+  "san-jose": "sanjose",
+  "los angeles": "losangeles",
+  "los-angeles": "losangeles",
+  la: "losangeles",
+  "new york": "newyork",
+  "new-york": "newyork",
+  nyc: "newyork",
+  "washington dc": "washingtondc",
+  "washington, dc": "washingtondc",
+  "washington d c": "washingtondc",
+  dc: "washingtondc"
+};
+
+const CITY_DISPLAY: Record<string, string> = {
+  sanfrancisco: "San Francisco",
+  sanjose: "San Jose",
+  losangeles: "Los Angeles",
+  newyork: "New York",
+  washingtondc: "Washington, DC"
+};
+
+export function toCityKey(input: string): string {
   return input.toLowerCase().replace(/[^a-z]/g, "");
 }
 
+export function normalizeCityInput(input: string): string {
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed) return "";
+
+  const compact = trimmed.replace(/[\s_-]+/g, "");
+  const keyed = toCityKey(trimmed);
+  const alias = CITY_ALIASES[trimmed] ?? CITY_ALIASES[compact] ?? CITY_ALIASES[keyed];
+  if (alias) return alias;
+  if (CITY_COORDS[trimmed]) return trimmed;
+  if (CITY_COORDS[compact]) return compact;
+  return keyed || compact;
+}
+
+export function listMajorCities(): string[] {
+  return Object.keys(CITY_COORDS);
+}
+
 export function getCityCoordinates(input: string): { lat: number; lon: number } | null {
-  const key = normalizeCityKey(input);
+  const key = normalizeCityInput(input);
   const coords = CITY_COORDS[key];
   if (!coords) return null;
   return { ...coords };
 }
 
 export function formatCityDisplay(input: string): string {
+  const normalized = normalizeCityInput(input);
+  const knownDisplay = CITY_DISPLAY[normalized];
+  if (knownDisplay) return knownDisplay;
   return input
     .split(/\s+|-/)
     .filter(Boolean)
@@ -50,13 +96,13 @@ function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
 }
 
 function nearestCity(fromCity: string, cities: string[]): string | null {
-  const fromKey = normalizeCityKey(fromCity);
+  const fromKey = normalizeCityInput(fromCity);
   const from = CITY_COORDS[fromKey];
   if (!from) return null;
 
   let best: { city: string; distance: number } | null = null;
   for (const city of cities) {
-    const key = normalizeCityKey(city);
+    const key = normalizeCityInput(city);
     const target = CITY_COORDS[key];
     if (!target || key === fromKey) continue;
     const distance = haversine(from, target);
@@ -111,8 +157,8 @@ export function recommendCity(availableCities: string[], visitorCity: string | n
     };
   }
 
-  const visitorKey = normalizeCityKey(visitorCity);
-  const local = availableCities.find((city) => normalizeCityKey(city) === visitorKey) ?? null;
+  const visitorKey = normalizeCityInput(visitorCity);
+  const local = availableCities.find((city) => normalizeCityInput(city) === visitorKey) ?? null;
   if (local) {
     return {
       visitorCity,

@@ -1112,6 +1112,9 @@ main {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
+  position: relative;
+  z-index: 40;
+  isolation: isolate;
 }
 
 .board-picker {
@@ -1121,6 +1124,12 @@ main {
   flex-wrap: wrap;
 }
 
+.city-autocomplete {
+  position: relative;
+  min-width: 240px;
+  z-index: 60;
+}
+
 .board-picker label {
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
   font-size: 0.78rem;
@@ -1128,7 +1137,7 @@ main {
   color: #614b1f;
 }
 
-.board-picker select,
+.board-picker input[type="search"],
 .board-picker button {
   min-height: 40px;
   border: 2px solid var(--retro-line);
@@ -1136,10 +1145,43 @@ main {
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
 }
 
-.board-picker select {
+.board-picker input[type="search"] {
   background: #fffdf0;
   padding: 0 0.5rem;
-  min-width: 160px;
+  min-width: 240px;
+  width: 100%;
+}
+
+.city-autocomplete-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.22rem;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 120;
+  border: 2px solid var(--retro-line);
+  border-radius: 10px;
+  background: #fff7dd;
+  box-shadow: 4px 4px 0 #2f2a1f;
+}
+
+.city-autocomplete-item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #2f2a1f;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.8rem;
+  padding: 0.34rem 0.42rem;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.city-autocomplete-item:hover {
+  background: #ffeebd;
 }
 
 .board-picker button {
@@ -1199,9 +1241,9 @@ main {
 
 .event-card-time {
   margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.79rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: #20435f;
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
 }
@@ -1212,19 +1254,48 @@ main {
 }
 
 .event-tag-row {
-  margin-top: 0.58rem;
+  margin-top: 0.64rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.38rem;
+  gap: 0.42rem;
 }
 
 .event-tag {
   border: 1px solid #6b5f40;
   border-radius: 999px;
-  padding: 0.16rem 0.46rem;
+  padding: 0.16rem 0.5rem;
   font-size: 0.71rem;
   font-family: "Space Mono", "IBM Plex Sans", sans-serif;
   background: #fffbee;
+}
+
+.event-tag-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.17rem 0.56rem;
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.event-status-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.event-tag-status.upcoming {
+  background: linear-gradient(180deg, #dfffe4 0%, #b9f4cb 100%);
+  border-color: #346f48;
+  color: #18452d;
+}
+
+.event-tag-status.past {
+  background: linear-gradient(180deg, #ffe6dc 0%, #ffd2c3 100%);
+  border-color: #8b5b48;
+  color: #6a2f1e;
 }
 
 .event-card-foot {
@@ -1682,8 +1753,9 @@ main {
 .event-tag {
   background: #ffe9b9;
   color: #413314;
-  font-size: 0.66rem;
-  border-radius: 4px;
+  font-size: 0.7rem;
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
   box-shadow: none;
 }
 
@@ -1720,7 +1792,7 @@ main {
 }
 
 .waitlist-form input[type="email"],
-.board-picker select {
+.board-picker input[type="search"] {
   border: 2px solid var(--line);
   border-radius: 5px;
   background: #fff8dc;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 
 import { CalendarIcon } from "@/app/components/icons";
+import { CityAutocomplete } from "@/app/components/city-autocomplete";
 import { LogoMark } from "@/app/components/logo-mark";
 import {
   normalizeBoardTimeZone,
@@ -16,6 +17,8 @@ import {
   formatCityDisplay,
   getCityCoordinates,
   inferVisitorCity,
+  listMajorCities,
+  normalizeCityInput,
   recommendCity
 } from "@/lib/location";
 import { getSiteUrl } from "@/lib/seo";
@@ -37,8 +40,7 @@ export async function generateMetadata({ searchParams }: EventBoardPageProps): P
   const query = await searchParams;
   const cities = listCities();
 
-  const requestedCity = query.city?.trim().toLowerCase();
-  const city = requestedCity && cities.includes(requestedCity) ? requestedCity : cities[0] ?? "seattle";
+  const city = resolveCityFromQuery(query.city, cities[0] ?? "seattle");
   const cityLabel = formatCityDisplay(city);
   const canonical = `/calendar?city=${encodeURIComponent(city)}&view=cards`;
   const coordinates = getCityCoordinates(city);
@@ -144,6 +146,23 @@ function boardHref(input: {
   return `/calendar?${params.toString()}`;
 }
 
+function dedupeCitySlugs(input: string[]): string[] {
+  const seen = new Set<string>();
+  const output: string[] = [];
+  for (const raw of input) {
+    const city = normalizeCityInput(raw);
+    if (!city || seen.has(city)) continue;
+    seen.add(city);
+    output.push(city);
+  }
+  return output;
+}
+
+function resolveCityFromQuery(raw: string | undefined, fallback: string): string {
+  const normalized = raw ? normalizeCityInput(raw) : "";
+  return normalized || normalizeCityInput(fallback) || "seattle";
+}
+
 export default async function EventBoardPage({ searchParams }: EventBoardPageProps) {
   await ensureStoreReady();
   const [query, headerStore, cities] = await Promise.all([
@@ -156,8 +175,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
   const recommendation = recommendCity(cities, visitorCity);
 
   const recommendedCity = recommendation.activeCity ?? cities[0] ?? "seattle";
-  const requestedCity = query.city?.trim().toLowerCase();
-  const city = requestedCity && cities.includes(requestedCity) ? requestedCity : recommendedCity;
+  const city = resolveCityFromQuery(query.city, recommendedCity);
 
   const view = normalizeBoardView(query.view);
   const tags = parseTagQuery(query.tags);
@@ -172,7 +190,9 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
   });
 
   const tagsText = tags.join(",");
-  const pickerCities = cities.length > 0 ? cities : [calendar.city];
+  const pickerCities = dedupeCitySlugs(cities.length > 0 ? cities : [calendar.city]);
+  const suggestedCities = dedupeCitySlugs([...listMajorCities(), ...pickerCities]);
+  const citySuggestions = suggestedCities.map((name) => formatCityDisplay(name));
   const cardsHref = boardHref({
     city: calendar.city,
     view: "cards",
@@ -200,6 +220,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
 
   const cells = monthGrid(calendar.from);
   const monthHeading = monthTitle(calendar.from);
+  const nowMs = Date.now();
   const detailQuery = new URLSearchParams();
   detailQuery.set("view", view);
   detailQuery.set("from", calendar.from);
@@ -286,13 +307,13 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
       <section className="board-toolbar section reveal delay-2">
         <form className="board-picker" method="get">
           <label htmlFor="board-city">City</label>
-          <select id="board-city" name="city" defaultValue={calendar.city}>
-            {pickerCities.map((name) => (
-              <option key={name} value={name}>
-                {formatCityDisplay(name)}
-              </option>
-            ))}
-          </select>
+          <CityAutocomplete
+            id="board-city"
+            name="city"
+            defaultValue={formatCityDisplay(calendar.city)}
+            suggestions={citySuggestions}
+            placeholder="Search major city"
+          />
           <input type="hidden" name="view" value={view} />
           <input type="hidden" name="from" value={calendar.from} />
           <input type="hidden" name="to" value={calendar.to} />
@@ -326,35 +347,47 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
               <article className="event-card event-card-empty">
                 <h2>No open meetups in {formatCityDisplay(calendar.city)} yet</h2>
                 <p>Try month view for upcoming windows or switch city to explore nearby activity.</p>
+                <div className="action-row">
+                  <Link className="event-detail-link" href={`/host?city=${encodeURIComponent(calendar.city)}` as Route}>
+                    Become a Host and create an event
+                  </Link>
+                </div>
               </article>
             ) : (
-              calendar.events.map((event) => (
-                <article className="event-card" key={event.meetup_id}>
-                  <p className="event-card-time">{event.start_local}</p>
-                  <h2>{event.name}</h2>
-                  <p className="event-card-location">
-                    {formatCityDisplay(calendar.city)} | {event.district}
-                  </p>
+              calendar.events.map((event) => {
+                const isPast = new Date(event.start_at).getTime() < nowMs;
+                return (
+                  <article className="event-card" key={event.meetup_id}>
+                    <p className="event-card-time">{event.start_human}</p>
+                    <h2>{event.name}</h2>
+                    <p className="event-card-location">
+                      {formatCityDisplay(calendar.city)} | {event.district}
+                    </p>
 
-                  <div className="event-tag-row">
-                    {event.tags.map((tag) => (
-                      <span key={tag} className="event-tag">
-                        {tag}
+                    <div className="event-tag-row">
+                      <span className={`event-tag event-tag-status ${isPast ? "past" : "upcoming"}`}>
+                        <span className="event-status-dot" aria-hidden="true" />
+                        {isPast ? "Past" : "Upcoming"}
                       </span>
-                    ))}
-                  </div>
+                      {event.tags.map((tag) => (
+                        <span key={tag} className="event-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
 
-                  <div className="event-card-foot">
-                    <span>{event.spots_remaining} spots remaining</span>
-                    <Link
-                      className="event-detail-link"
-                      href={`/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route}
-                    >
-                      View details
-                    </Link>
-                  </div>
-                </article>
-              ))
+                    <div className="event-card-foot">
+                      <span>{event.spots_remaining} spots remaining</span>
+                      <Link
+                        className="event-detail-link"
+                        href={`/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route}
+                      >
+                        View details
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })
             )}
           </div>
         ) : (
@@ -399,7 +432,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                   <article className="agenda-item" key={event.meetup_id}>
                     <p className="agenda-title">{event.name}</p>
                     <p className="agenda-sub">
-                      {event.start_local} | {event.district} | {event.tags.join(", ")}
+                      {event.start_human} | {event.district} | {event.tags.join(", ")}
                     </p>
                   </article>
                 ))

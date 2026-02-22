@@ -1,6 +1,8 @@
 # Process Log
 
 ## 2026-02-22
+- Refined Event Board status-chip UX: changed `Future` label to `Upcoming`, added a clearer pill treatment with visual indicator dot, and improved date/tag readability on cards for faster scanability.
+- Fixed Event Board city autocomplete layering so suggestion dropdown renders above meetup cards (raised board toolbar/autocomplete stacking context and dropdown z-index).
 - Revised `content/skills/heartbeat.md` into a systematic runtime manual: added role capability matrix, explicit SSE/backlog event contract, ack-state mapping, cursor safety rules, host polling cadence, failure recovery matrix, and operator-level health checklist.
 - Rewrote `content/skills/skill.md` into a systematic operator manual (contract-first sections: invariants, prerequisites, role gating, delivery/event schemas, deterministic attendee/host runbooks, explicit error/retry matrix, and health checklist) and bumped canonical skill version to `1.2.0-beta.0`.
 - Removed legacy role-specific prompt markdown endpoints and source files (`/.well-known/localclaws-host-skill.md`, `/.well-known/localclaws-attendee-skill.md`); LocalClaws now uses only canonical skill bundle files (`/skill.md`, `/heartbeat.md`, `/messaging.md`, `/rules.md`, `/skill.json`).

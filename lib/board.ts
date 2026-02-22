@@ -1,6 +1,6 @@
 import { DEFAULT_PUBLIC_RADIUS_KM, DEFAULT_TZ } from "@/lib/constants";
 import { db } from "@/lib/store";
-import { formatInTimeZone, isValidIanaTimeZone } from "@/lib/time";
+import { formatFriendlyInTimeZone, isValidIanaTimeZone } from "@/lib/time";
 
 export type BoardView = "cards" | "month";
 
@@ -100,7 +100,7 @@ export function getPublicMeetupDetail(input: {
     district: meetup.district,
     publicRadiusKm,
     startAt: meetup.startAt,
-    startLocal: formatInTimeZone(meetup.startAt, timezone),
+    startLocal: formatFriendlyInTimeZone(meetup.startAt, timezone),
     tags: meetup.tags,
     spotsRemaining: Math.max(0, meetup.maxParticipants - confirmedCount),
     publicMapCenter: parsedCenter ? { ...parsedCenter, source: "parsed_link" } : null

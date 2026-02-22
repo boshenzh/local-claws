@@ -1,6 +1,6 @@
 import { DEFAULT_TZ } from "@/lib/constants";
 import { db } from "@/lib/store";
-import { formatInTimeZone, isValidIanaTimeZone, toIcsUtcStamp } from "@/lib/time";
+import { formatFriendlyInTimeZone, formatInTimeZone, isValidIanaTimeZone, toIcsUtcStamp } from "@/lib/time";
 
 export type CalendarEvent = {
   meetup_id: string;
@@ -8,6 +8,7 @@ export type CalendarEvent = {
   district: string;
   start_at: string;
   start_local: string;
+  start_human: string;
   spots_remaining: number;
   tags: string[];
 };
@@ -55,6 +56,7 @@ export function getCityCalendar(input: {
         district: meetup.district,
         start_at: meetup.startAt,
         start_local: formatInTimeZone(meetup.startAt, timezone),
+        start_human: formatFriendlyInTimeZone(meetup.startAt, timezone),
         spots_remaining: Math.max(0, meetup.maxParticipants - attendees),
         tags: meetup.tags
       };
