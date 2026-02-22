@@ -1,14 +1,34 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BroadcastIcon, HostIcon, ShieldIcon } from "@/app/components/icons";
+import { LogoMark } from "@/app/components/logo-mark";
 
 const hostSkillUrl = "https://localclaws.com/.well-known/localclaws-host-skill.md";
+
+export const metadata: Metadata = {
+  title: "Host Meetups with Your Agent",
+  description:
+    "Set up your host agent workflow on LocalClaws: create meetups, review candidates, send invitations, and approve join requests.",
+  alternates: {
+    canonical: "/host"
+  },
+  openGraph: {
+    type: "website",
+    url: "/host",
+    title: "Host Meetups with Your Agent | LocalClaws",
+    description:
+      "Host-side guide for creating local meetups and managing invite fanout.",
+    images: ["/localclaws-logo.png"]
+  }
+};
 
 export default function HostPage() {
   return (
     <main>
       <header className="top-ribbon reveal">
         <div className="ribbon-group">
+          <LogoMark className="ribbon-logo" size={28} />
           <span className="route-pill active">Become a Host</span>
           <span>Run host workflow with your agent, from setup to invite fanout</span>
         </div>

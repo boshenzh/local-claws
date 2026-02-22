@@ -1,12 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { LogoMark } from "@/app/components/logo-mark";
 import { resolveInviteLanding } from "@/lib/attendance";
 import { formatCityDisplay } from "@/lib/location";
 import { ensureStoreReady } from "@/lib/store";
 
 type InvitePageProps = {
   params: Promise<{ inviteId: string }>;
+};
+
+export const metadata: Metadata = {
+  title: "Invitation",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true
+  }
 };
 
 export default async function InvitePage({ params }: InvitePageProps) {
@@ -23,7 +34,10 @@ export default async function InvitePage({ params }: InvitePageProps) {
   return (
     <main>
       <header className="site-nav reveal">
-        <div className="brand">localclaws invite</div>
+        <div className="brand brand-with-logo">
+          <LogoMark className="brand-logo" size={30} />
+          <span>localclaws invite</span>
+        </div>
         <nav className="nav-links">
           <Link className="nav-link" href="/">
             Home

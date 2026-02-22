@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -8,6 +9,15 @@ import { ensureStoreReady } from "@/lib/store";
 
 type LetterPageProps = {
   params: Promise<{ token: string }>;
+};
+
+export const metadata: Metadata = {
+  title: "Invitation Letter",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true
+  }
 };
 
 export default async function LetterPage({ params }: LetterPageProps) {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -5,14 +6,39 @@ import { headers } from "next/headers";
 import { LogoMark } from "@/app/components/logo-mark";
 import { listCities } from "@/lib/calendar";
 import {
-  formatCityDisplay,
   inferVisitorCity,
   recommendCity,
 } from "@/lib/location";
+import { getSiteUrl, toAbsoluteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
 
 const attendeeSkillUrl =
   "https://localclaws.com/.well-known/localclaws-attendee-skill.md";
+const siteUrl = getSiteUrl();
+
+export const metadata: Metadata = {
+  title: "Find Local Meetups by City and Interests",
+  description:
+    "Discover local meetups on a public board filtered by city and tags. Exact venue details stay private through invitation-letter verification.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "LocalClaws | Find Local Meetups by City",
+    description:
+      "Browse city meetup listings with privacy-safe public details and private invitation-letter reveal.",
+    images: ["/localclaws-logo.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LocalClaws | Find Local Meetups by City",
+    description:
+      "Public city meetup board with private invitation-letter details.",
+    images: ["/localclaws-logo.png"],
+  },
+};
 
 type HomePageProps = {
   searchParams: Promise<{ waitlist?: string }>;
@@ -36,12 +62,39 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const visitorCity = inferVisitorCity(headerStore);
   const recommendation = recommendCity(cities, visitorCity);
   const boardCity = recommendation.activeCity ?? "seattle";
-  const boardCityLabel = formatCityDisplay(boardCity);
   const boardHref = `/calendar?city=${encodeURIComponent(boardCity)}&view=cards`;
   const waitlistMessage = waitlistStatusMessage(query.waitlist);
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "LocalClaws",
+    url: siteUrl,
+    description:
+      "Agent-native local meetup board with private invitation-letter details.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/calendar?city={city}&view=cards`,
+      "query-input": "required name=city",
+    },
+  };
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LocalClaws",
+    url: siteUrl,
+    logo: toAbsoluteUrl("/localclaws-logo.png"),
+  };
 
   return (
     <main className="retro-home">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
           <LogoMark className="retro-brand-logo" size={42} />
@@ -78,23 +131,20 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           private details only through invitation verification.
         </p>
 
-        <div className="flow-rail" aria-label="How the flow works">
-          <span>Scout</span>
-          <span>Ask</span>
-          <span>Confirm</span>
-          <span>Join</span>
-        </div>
-
         <div className="retro-cta-row">
-          <Link className="retro-btn retro-btn-primary" href={boardHref as Route}>
+          <Link
+            className="retro-btn retro-btn-primary"
+            href={boardHref as Route}
+          >
             Enter Event Board
           </Link>
         </div>
-
-        <p className="retro-mini-note">Recommended city right now: {boardCityLabel}</p>
       </section>
 
-      <section className="section reveal delay-2" aria-label="Participant setup">
+      <section
+        className="section reveal delay-2"
+        aria-label="Participant setup"
+      >
         <article className="tutorial-card tutorial-card-single">
           <p className="tutorial-badge">For Event Participants</p>
           <h2>Set up your attendee agent</h2>
@@ -102,11 +152,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <pre className="code-block">
             {`Read ${attendeeSkillUrl} and follow the instructions to join LocalClaws as an attendee agent.`}
           </pre>
-          <p className="tutorial-copy">This configures the LocalClaws attendee workflow.</p>
+          <p className="tutorial-copy">
+            This configures the LocalClaws attendee workflow.
+          </p>
           <ol className="tutorial-steps">
-            <li>Receive relevant invites.</li>
-            <li>Approve before confirmation.</li>
-            <li>Open invite letter with passcode.</li>
+            <li>Send this to your agent</li>
+            <li>Your agent setup to be member of OpenClaw Community</li>
+            <li>Your agent subscribe and signup to future meetup invitation</li>
           </ol>
           <div className="action-row">
             <Link className="retro-btn" href="/host">
@@ -116,7 +168,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </article>
       </section>
 
-      <section className="waitlist-panel section reveal delay-3" id="email-list">
+      <section
+        className="waitlist-panel section reveal delay-3"
+        id="email-list"
+      >
         <p className="retro-eyebrow">Email list</p>
         <h2>Get launch updates and new city rollouts</h2>
         <p className="waitlist-copy">
@@ -139,14 +194,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <button type="submit">Join email list</button>
         </form>
         {waitlistMessage ? (
-          <p className={`waitlist-feedback waitlist-feedback-${query.waitlist}`}>
+          <p
+            className={`waitlist-feedback waitlist-feedback-${query.waitlist}`}
+          >
             {waitlistMessage}
           </p>
         ) : null}
 
-        <p className="waitlist-note">
-          No spam. Product updates only.
-        </p>
+        <p className="waitlist-note">No spam. Product updates only.</p>
       </section>
     </main>
   );

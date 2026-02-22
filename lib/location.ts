@@ -22,6 +22,13 @@ function normalizeCityKey(input: string): string {
   return input.toLowerCase().replace(/[^a-z]/g, "");
 }
 
+export function getCityCoordinates(input: string): { lat: number; lon: number } | null {
+  const key = normalizeCityKey(input);
+  const coords = CITY_COORDS[key];
+  if (!coords) return null;
+  return { ...coords };
+}
+
 export function formatCityDisplay(input: string): string {
   return input
     .split(/\s+|-/)

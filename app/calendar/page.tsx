@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -13,9 +14,11 @@ import {
 import { getCityCalendar, listCities } from "@/lib/calendar";
 import {
   formatCityDisplay,
+  getCityCoordinates,
   inferVisitorCity,
   recommendCity
 } from "@/lib/location";
+import { getSiteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
 
 type EventBoardPageProps = {
@@ -28,6 +31,47 @@ type EventBoardPageProps = {
     tags?: string;
   }>;
 };
+
+export async function generateMetadata({ searchParams }: EventBoardPageProps): Promise<Metadata> {
+  await ensureStoreReady();
+  const query = await searchParams;
+  const cities = listCities();
+
+  const requestedCity = query.city?.trim().toLowerCase();
+  const city = requestedCity && cities.includes(requestedCity) ? requestedCity : cities[0] ?? "seattle";
+  const cityLabel = formatCityDisplay(city);
+  const canonical = `/calendar?city=${encodeURIComponent(city)}&view=cards`;
+  const coordinates = getCityCoordinates(city);
+  const geoMeta: Record<string, string | number | Array<string | number>> = {
+    "geo.region": cityLabel,
+    "geo.placename": cityLabel
+  };
+  if (coordinates) {
+    geoMeta.ICBM = `${coordinates.lat}, ${coordinates.lon}`;
+  }
+
+  return {
+    title: `${cityLabel} Meetup Board`,
+    description: `Browse open meetups in ${cityLabel} by time, district, and interest tags.`,
+    alternates: {
+      canonical
+    },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      title: `${cityLabel} Meetup Board | LocalClaws`,
+      description: `Open meetup listings for ${cityLabel}, with private venue details revealed only after invitation verification.`,
+      images: ["/localclaws-logo.png"]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${cityLabel} Meetup Board | LocalClaws`,
+      description: `Discover local events in ${cityLabel} by district, time, and tags.`,
+      images: ["/localclaws-logo.png"]
+    },
+    other: geoMeta
+  };
+}
 
 type DayCell = {
   key: string;
@@ -165,9 +209,53 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
     detailQuery.set("tags", tagsText);
   }
   const detailQueryText = detailQuery.toString();
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = `${siteUrl}/calendar?city=${encodeURIComponent(calendar.city)}&view=cards`;
+  const cityLabel = formatCityDisplay(calendar.city);
+  const cityCoordinates = getCityCoordinates(calendar.city);
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${cityLabel} Meetup Board`,
+    url: canonicalUrl,
+    description: `Public meetup listings for ${cityLabel}.`,
+    about: {
+      "@type": "Place",
+      name: cityLabel,
+      ...(cityCoordinates
+        ? {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: cityCoordinates.lat,
+              longitude: cityCoordinates.lon
+            }
+          }
+        : {})
+    }
+  };
+  const listSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${cityLabel} meetup listings`,
+    numberOfItems: calendar.events.length,
+    itemListElement: calendar.events.slice(0, 50).map((event, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: event.name,
+      url: `${siteUrl}/calendar/${calendar.city}/event/${event.meetup_id}`
+    }))
+  };
 
   return (
     <main className="retro-home board-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(listSchema) }}
+      />
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
           <LogoMark className="retro-brand-logo" size={42} />

@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LogoMark } from "@/app/components/logo-mark";
 import { getPublicMeetupDetail, normalizeBoardTimeZone, normalizeBoardView } from "@/lib/board";
 import { formatCityDisplay } from "@/lib/location";
+import { getSiteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,57 @@ type EventDetailPageProps = {
   params: Promise<{ city: string; meetupId: string }>;
   searchParams: Promise<{ tz?: string; view?: string; from?: string; to?: string; tags?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<EventDetailPageProps, "params">): Promise<Metadata> {
+  await ensureStoreReady();
+  const { city, meetupId } = await params;
+  const detail = getPublicMeetupDetail({ city, meetupId });
+
+  if (!detail) {
+    return {
+      title: "Event Not Found",
+      robots: {
+        index: false,
+        follow: false
+      }
+    };
+  }
+
+  const cityLabel = formatCityDisplay(detail.city);
+  const canonical = `/calendar/${detail.city}/event/${detail.meetupId}`;
+  const tagsText = detail.tags.slice(0, 3).join(", ");
+  const description = `${detail.name} in ${detail.district}, ${cityLabel}. Starts ${detail.startLocal}. Public area radius ${detail.publicRadiusKm} km.${tagsText ? ` Tags: ${tagsText}.` : ""}`;
+  const geoMeta: Record<string, string | number | Array<string | number>> = {
+    "geo.region": cityLabel,
+    "geo.placename": `${detail.district}, ${cityLabel}`
+  };
+  if (detail.publicMapCenter) {
+    geoMeta["geo.position"] = `${detail.publicMapCenter.lat};${detail.publicMapCenter.lon}`;
+    geoMeta.ICBM = `${detail.publicMapCenter.lat}, ${detail.publicMapCenter.lon}`;
+  }
+
+  return {
+    title: `${detail.name} in ${cityLabel}`,
+    description,
+    alternates: {
+      canonical
+    },
+    openGraph: {
+      type: "article",
+      url: canonical,
+      title: `${detail.name} | ${cityLabel} Meetup`,
+      description,
+      images: ["/localclaws-logo.png"]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${detail.name} | ${cityLabel} Meetup`,
+      description,
+      images: ["/localclaws-logo.png"]
+    },
+    other: geoMeta
+  };
+}
 
 function mapZoomForRadius(radiusKm: number): number {
   if (radiusKm <= 2) return 14;
@@ -59,9 +112,49 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     ? `${detail.publicMapCenter.lat},${detail.publicMapCenter.lon}`
     : mapQuery;
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapSearch)}&z=${mapZoom}&output=embed`;
+  const siteUrl = getSiteUrl();
+  const cityLabel = formatCityDisplay(detail.city);
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: detail.name,
+    startDate: detail.startAt,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    description: `Public meetup listing for ${cityLabel}. Exact venue details are revealed only in private invitation letters.`,
+    keywords: detail.tags.join(", "),
+    url: `${siteUrl}/calendar/${detail.city}/event/${detail.meetupId}`,
+    location: {
+      "@type": "Place",
+      name: `${detail.district}, ${cityLabel}`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: detail.district,
+        addressRegion: cityLabel
+      },
+      ...(detail.publicMapCenter
+        ? {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: detail.publicMapCenter.lat,
+              longitude: detail.publicMapCenter.lon
+            }
+          }
+        : {})
+    },
+    organizer: {
+      "@type": "Organization",
+      name: "LocalClaws",
+      url: siteUrl
+    }
+  };
 
   return (
     <main className="retro-home board-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
           <LogoMark className="retro-brand-logo" size={42} />
@@ -85,7 +178,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         <p className="retro-eyebrow">Meetup details</p>
         <h1 className="retro-title">{detail.name}</h1>
         <p className="retro-lead">
-          {formatCityDisplay(detail.city)} | {detail.district} | {detail.startLocal}
+          {cityLabel} | {detail.district} | {detail.startLocal}
         </p>
         <p className="event-map-note">Approximate meetup area: within {detail.publicRadiusKm} km of {detail.district}.</p>
       </section>

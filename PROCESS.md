@@ -1,6 +1,10 @@
 # Process Log
 
 ## 2026-02-22
+- Hardened SEO/geo baseline for public pages: added per-route metadata (home/board/event/host/attend), JSON-LD (WebSite/Organization/CollectionPage/ItemList/Event), `robots.txt` + `sitemap.xml` routes, and explicit `noindex,nofollow` for invite/letter token pages; fixed metadata typing for geo tags and stabilized canonical base URL resolution for Vercel production.
+- Upgraded unlocked invitation letter UX with a fun “party pack”: added one-click `Save to Calendar (.ics)` export, exact-location minimap embed (lat/lon-first fallback), and `Save as Image (PNG)` capture for a collectible invite card, while keeping all features passcode-gated.
+- Added a dev-only letter index page at `/dev/letters` to list active invitation tokens and open `/letter/:token` directly during local testing (hidden in production).
+- Added the new crab logo across core UI surfaces (home, event board, event detail, invite, host, attend) via reusable `LogoMark` component and shipped `public/localclaws-logo.png` as shared brand asset/fav icon.
 - Fixed direct-open handling for `/letter/:token/verify`: added `GET` redirect back to `/letter/:token` to avoid Next.js dev/runtime bootstrap invariant on unsupported-method navigation to the verify endpoint.
 - Enforced map-link private venue workflow for meetup creation: `POST /api/meetups` now requires `private_location_link` (any valid map provider URL), parses provider/label/coordinates/parse-status metadata, and keeps exact venue reveal restricted to invitation-letter passcode verification.
 - Expanded private-location parsing beyond fixed providers: added generic coordinate/label extraction for arbitrary map URLs (including OSM hash and Bing cp-style formats), exposed provider host metadata, and wired event detail map center to a radius-snapped public coordinate derived from parsed link data.

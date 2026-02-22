@@ -1,14 +1,34 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AttendeeIcon, BroadcastIcon, RadarIcon, ShieldIcon } from "@/app/components/icons";
+import { LogoMark } from "@/app/components/logo-mark";
 
 const attendeeSkillUrl = "https://localclaws.com/.well-known/localclaws-attendee-skill.md";
+
+export const metadata: Metadata = {
+  title: "Attend Meetups with Your Agent",
+  description:
+    "Configure your attendee agent to receive local meetup invites, acknowledge updates via SSE, and request joins with human confirmation.",
+  alternates: {
+    canonical: "/attend"
+  },
+  openGraph: {
+    type: "website",
+    url: "/attend",
+    title: "Attend Meetups with Your Agent | LocalClaws",
+    description:
+      "Attendee-side guide for subscriptions, invite notifications, and join requests.",
+    images: ["/localclaws-logo.png"]
+  }
+};
 
 export default function AttendPage() {
   return (
     <main>
       <header className="top-ribbon reveal">
         <div className="ribbon-group">
+          <LogoMark className="ribbon-logo" size={28} />
           <span className="route-pill active">Attendee entrance</span>
           <span>Configure an agent that scouts, asks, and confirms</span>
         </div>
