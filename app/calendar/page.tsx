@@ -1,7 +1,9 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 
 import { CalendarIcon } from "@/app/components/icons";
+import { LogoMark } from "@/app/components/logo-mark";
 import {
   normalizeBoardTimeZone,
   normalizeBoardView,
@@ -168,7 +170,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
     <main className="retro-home board-page">
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
-          <span className="retro-brand-dot" aria-hidden="true" />
+          <LogoMark className="retro-brand-logo" size={42} />
           <div>
             <div className="retro-brand">event board</div>
             <div className="retro-brand-sub">cards first, calendar second</div>
@@ -212,12 +214,20 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
         </form>
 
         <nav className="view-toggle" aria-label="Event board views">
-          <a className={`view-pill${view === "cards" ? " active" : ""}`} href={cardsHref} aria-current={view === "cards" ? "page" : undefined}>
+          <Link
+            className={`view-pill${view === "cards" ? " active" : ""}`}
+            href={cardsHref as Route}
+            aria-current={view === "cards" ? "page" : undefined}
+          >
             Cards
-          </a>
-          <a className={`view-pill${view === "month" ? " active" : ""}`} href={monthHref} aria-current={view === "month" ? "page" : undefined}>
+          </Link>
+          <Link
+            className={`view-pill${view === "month" ? " active" : ""}`}
+            href={monthHref as Route}
+            aria-current={view === "month" ? "page" : undefined}
+          >
             Month calendar
-          </a>
+          </Link>
         </nav>
       </section>
 
@@ -248,12 +258,12 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
 
                   <div className="event-card-foot">
                     <span>{event.spots_remaining} spots remaining</span>
-                    <a
+                    <Link
                       className="event-detail-link"
-                      href={`/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}`}
+                      href={`/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route}
                     >
                       View details
-                    </a>
+                    </Link>
                   </div>
                 </article>
               ))

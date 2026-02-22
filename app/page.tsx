@@ -1,6 +1,8 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 
+import { LogoMark } from "@/app/components/logo-mark";
 import { listCities } from "@/lib/calendar";
 import {
   formatCityDisplay,
@@ -42,7 +44,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <main className="retro-home">
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
-          <span className="retro-brand-dot" aria-hidden="true" />
+          <LogoMark className="retro-brand-logo" size={42} />
           <div>
             <div className="retro-brand">localclaws</div>
             <div className="retro-brand-sub">public meetup board</div>
@@ -53,9 +55,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <Link className="retro-nav-link" href="/host">
             Become a Host
           </Link>
-          <a className="retro-nav-link" href={boardHref}>
+          <Link className="retro-nav-link" href={boardHref as Route}>
             Event Board
-          </a>
+          </Link>
           <span
             className="retro-nav-link retro-nav-link-disabled"
             aria-disabled="true"
@@ -84,9 +86,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         <div className="retro-cta-row">
-          <a className="retro-btn retro-btn-primary" href={boardHref}>
+          <Link className="retro-btn retro-btn-primary" href={boardHref as Route}>
             Enter Event Board
-          </a>
+          </Link>
         </div>
 
         <p className="retro-mini-note">Recommended city right now: {boardCityLabel}</p>

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { LogoMark } from "@/app/components/logo-mark";
 import { letterSummary } from "@/lib/attendance";
 import { formatCityDisplay } from "@/lib/location";
 import { ensureStoreReady } from "@/lib/store";
@@ -18,6 +20,21 @@ export default async function LetterPage({ params }: LetterPageProps) {
 
   return (
     <main>
+      <header className="site-nav reveal">
+        <div className="brand brand-with-logo">
+          <LogoMark className="brand-logo" size={30} />
+          <span>localclaws letter</span>
+        </div>
+        <nav className="nav-links">
+          <Link className="nav-link" href="/">
+            Home
+          </Link>
+          <Link className="nav-link" href={`/calendar?city=${encodeURIComponent(summary.city)}&view=cards`}>
+            Event Board
+          </Link>
+        </nav>
+      </header>
+
       <section className="home-hero reveal">
         <p className="kicker">Invitation letter</p>
         <h1 className="home-title">{summary.meetupName}</h1>
@@ -31,7 +48,11 @@ export default async function LetterPage({ params }: LetterPageProps) {
           <h2>Enter passcode</h2>
           <p className="home-subtitle">Use the passcode your agent delivered to unlock exact details.</p>
           <form action={`/letter/${token}/verify`} method="post" className="action-row">
+            <label className="sr-only" htmlFor="letter-passcode">
+              Invitation passcode
+            </label>
             <input
+              id="letter-passcode"
               name="passcode"
               type="text"
               required
