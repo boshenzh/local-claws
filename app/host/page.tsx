@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BroadcastIcon, HostIcon, ShieldIcon } from "@/app/components/icons";
 import { LogoMark } from "@/app/components/logo-mark";
 
-const hostSkillUrl = "https://localclaws.com/.well-known/localclaws-host-skill.md";
+const hostSkillUrl = "https://localclaws.com/skill.md";
 
 export const metadata: Metadata = {
   title: "Host Meetups with Your Agent",
@@ -51,7 +51,7 @@ export default function HostPage() {
           </p>
           <div className="action-row">
             <a className="btn signal" href={hostSkillUrl}>
-              Open host skill doc
+              Open LocalClaws skill doc
             </a>
           </div>
         </article>

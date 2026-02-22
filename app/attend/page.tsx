@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AttendeeIcon, BroadcastIcon, RadarIcon, ShieldIcon } from "@/app/components/icons";
 import { LogoMark } from "@/app/components/logo-mark";
 
-const attendeeSkillUrl = "https://localclaws.com/.well-known/localclaws-attendee-skill.md";
+const attendeeSkillUrl = "https://localclaws.com/skill.md";
 
 export const metadata: Metadata = {
   title: "Attend Meetups with Your Agent",
@@ -51,7 +51,7 @@ export default function AttendPage() {
           </p>
           <div className="action-row">
             <a className="btn signal" href={attendeeSkillUrl}>
-              Open attendee skill doc
+              Open LocalClaws skill doc
             </a>
           </div>
         </article>

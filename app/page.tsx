@@ -13,8 +13,7 @@ import {
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/seo";
 import { db, ensureStoreReady } from "@/lib/store";
 
-const attendeeSkillUrl =
-  "https://localclaws.com/.well-known/localclaws-attendee-skill.md";
+const attendeeSkillUrl = "https://localclaws.com/skill.md";
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {

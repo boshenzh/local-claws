@@ -1,6 +1,13 @@
 # Process Log
 
 ## 2026-02-22
+- Revised `content/skills/heartbeat.md` into a systematic runtime manual: added role capability matrix, explicit SSE/backlog event contract, ack-state mapping, cursor safety rules, host polling cadence, failure recovery matrix, and operator-level health checklist.
+- Rewrote `content/skills/skill.md` into a systematic operator manual (contract-first sections: invariants, prerequisites, role gating, delivery/event schemas, deterministic attendee/host runbooks, explicit error/retry matrix, and health checklist) and bumped canonical skill version to `1.2.0-beta.0`.
+- Removed legacy role-specific prompt markdown endpoints and source files (`/.well-known/localclaws-host-skill.md`, `/.well-known/localclaws-attendee-skill.md`); LocalClaws now uses only canonical skill bundle files (`/skill.md`, `/heartbeat.md`, `/messaging.md`, `/rules.md`, `/skill.json`).
+- Expanded LocalClaws skill docs to a Moltbook-style comprehensive operator manual: upgraded `content/skills/skill.md`, `heartbeat.md`, `messaging.md`, `rules.md`, and `skill.json` with explicit setup prerequisites, request/response examples, event model, retry policy, troubleshooting, and security guardrails.
+- Expanded the OpenClaw package docs under `skills/localclaws/` to match the comprehensive manual level (role workflows, runtime templates, safety and endpoint references) for ClawHub-ready publishing quality.
+- Added canonical Moltbook-style skill bundle routes (`/skill.md`, `/heartbeat.md`, `/messaging.md`, `/rules.md`, `/skill.json`) with fallback-backed serving from `content/skills/*`, while keeping legacy role URLs under `/.well-known/*` as compatibility entrypoints pointing to the canonical bundle.
+- Added an OpenClaw/ClawHub-ready installable skill package at `skills/localclaws/` (`SKILL.md`, role workflow references, safety/API references, and heartbeat/messaging templates) so LocalClaws can be distributed natively to OpenClaw agents in addition to URL-based onboarding.
 - Added a rolling “Recent LocalClaws event boards” strip under attendee setup on the landing page, showcasing recent public offline meetup cards with direct links to event details.
 - Added a new landing-page footer with retro styling, quick navigation links (Home/Event Board/Host/Attend), privacy link, and a trust-oriented privacy note.
 - Hardened SEO/geo baseline for public pages: added per-route metadata (home/board/event/host/attend), JSON-LD (WebSite/Organization/CollectionPage/ItemList/Event), `robots.txt` + `sitemap.xml` routes, and explicit `noindex,nofollow` for invite/letter token pages; fixed metadata typing for geo tags and stabilized canonical base URL resolution for Vercel production.
@@ -46,6 +53,9 @@
 - Added a dedicated `/host` guide page for `Become a Host` with detailed onboarding, copy-paste prompt, LocalClaws host API sequence, and optional Moltbook extension workflow.
 - Added waitlist consent gating on homepage: users must check “I agree to receive email updates and accept the Privacy Policy” before join, with a new `/privacy` page and server-side consent validation in `/api/waitlist`.
 - Hardened `.well-known` skill endpoints against deployment file-tracing misses: added output tracing include for `content/skills/*.md` and embedded fallback markdown so host/attendee skill URLs return content instead of HTTP 500 if disk reads fail.
+- Upgraded Event Board city picker from dropdown to searchable autofill input (major-city suggestions + city name normalization), and added empty-city CTA to `/host` so users can become a host and create the first meetup when no events exist.
+- Added true typeahead autocomplete UI for Event Board city search plus card-level temporal status chips (`Past` / `Future`) so attendees can scan meetup recency at a glance.
+- Replaced machine-style board timestamps with human-readable local phrases (e.g. `Today, 6:30 PM`, `Tomorrow, 7:00 PM`, `Monday, 6:00 PM`) across Event Board cards, agenda list, and event detail hero/public fields.
 
 ## 2026-02-17
 - Implemented LocalClaws v1 scaffold with Next.js App Router.
