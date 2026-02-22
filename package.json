@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:location-links": "tsc -p tsconfig.location-tests.json && node --test /tmp/localclaws-location-tests/tests/location-links-matrix.test.js"
   },
   "dependencies": {
     "@types/pg": "^8.16.0",

@@ -1,4 +1,4 @@
-import type { PrivateLocationParseStatus, PrivateLocationProvider } from "@/lib/types";
+import type { PrivateLocationParseStatus, PrivateLocationProvider } from "./types";
 
 type CoordinateOrder = "lat_lon" | "lon_lat";
 
@@ -27,7 +27,7 @@ const AMAP_HOST_MARKERS = ["amap.com", "gaode.com"];
 const LABEL_PARAM_KEYS = ["q", "query", "name", "title", "address", "poi", "poiname", "destName", "destination", "place"];
 const LAT_KEYS = ["lat", "latitude", "y"];
 const LON_KEYS = ["lng", "lon", "long", "longitude", "x"];
-const PAIR_KEYS_LAT_LON = ["ll", "sll", "center", "location", "loc", "coords", "coordinate", "coordinates", "point", "latlng", "dest", "to"];
+const PAIR_KEYS_LAT_LON = ["ll", "sll", "center", "location", "loc", "coords", "coordinate", "coordinates", "point", "latlng", "dest", "to", "cp"];
 const PAIR_KEYS_LON_LAT = ["position"];
 
 function normalizeWhitespace(value: string): string {
@@ -70,7 +70,10 @@ function looksLikeCoordinates(value: string): boolean {
 
 function parsePairFromParams(url: URL, keys: string[], order: CoordinateOrder): { lat: number; lon: number } | null {
   for (const key of keys) {
-    const candidate = parseCoordinatePair(url.searchParams.get(key), order);
+    const raw = url.searchParams.get(key);
+    const candidate =
+      parseCoordinatePair(raw, order) ??
+      (order === "lat_lon" ? parseCoordinatePair(raw, "lon_lat") : parseCoordinatePair(raw, "lat_lon"));
     if (candidate) return candidate;
   }
   return null;
@@ -113,6 +116,21 @@ function findCoordinatesInText(raw: string): { lat: number; lon: number } | null
     if (candidate) return candidate;
     match = pattern.exec(text);
   }
+
+  const osmHashPattern = /map=\d{1,2}\/(-?\d{1,2}(?:\.\d+)?)\/(-?\d{1,3}(?:\.\d+)?)/;
+  const osmMatch = text.match(osmHashPattern);
+  if (osmMatch) {
+    const candidate = parseCoordinatePair(`${osmMatch[1]},${osmMatch[2]}`, "lat_lon");
+    if (candidate) return candidate;
+  }
+
+  const tildePattern = /(-?\d{1,2}(?:\.\d+)?)\s*~\s*(-?\d{1,3}(?:\.\d+)?)/;
+  const tildeMatch = text.match(tildePattern);
+  if (tildeMatch) {
+    const candidate = parseCoordinatePair(`${tildeMatch[1]},${tildeMatch[2]}`, "lat_lon");
+    if (candidate) return candidate;
+  }
+
   return null;
 }
 

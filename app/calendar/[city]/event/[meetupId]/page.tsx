@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { LogoMark } from "@/app/components/logo-mark";
 import { getPublicMeetupDetail, normalizeBoardTimeZone, normalizeBoardView } from "@/lib/board";
 import { formatCityDisplay } from "@/lib/location";
 import { ensureStoreReady } from "@/lib/store";
@@ -63,7 +64,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     <main className="retro-home board-page">
       <header className="retro-nav reveal">
         <div className="retro-brand-wrap">
-          <span className="retro-brand-dot" aria-hidden="true" />
+          <LogoMark className="retro-brand-logo" size={42} />
           <div>
             <div className="retro-brand">event detail</div>
             <div className="retro-brand-sub">public-safe overview</div>

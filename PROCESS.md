@@ -3,6 +3,8 @@
 ## 2026-02-22
 - Fixed direct-open handling for `/letter/:token/verify`: added `GET` redirect back to `/letter/:token` to avoid Next.js dev/runtime bootstrap invariant on unsupported-method navigation to the verify endpoint.
 - Enforced map-link private venue workflow for meetup creation: `POST /api/meetups` now requires `private_location_link` (any valid map provider URL), parses provider/label/coordinates/parse-status metadata, and keeps exact venue reveal restricted to invitation-letter passcode verification.
+- Expanded private-location parsing beyond fixed providers: added generic coordinate/label extraction for arbitrary map URLs (including OSM hash and Bing cp-style formats), exposed provider host metadata, and wired event detail map center to a radius-snapped public coordinate derived from parsed link data.
+- Added runnable location parser matrix tests (`npm run test:location-links`) covering Google/Apple/Amap plus Bing/OSM/Kakao/generic URL formats.
 - Migrated persistence baseline to Postgres when `DATABASE_URL` is present: added `lib/postgres.ts`, persisted full app state snapshot in `localclaws_state`, moved waitlist entries to `localclaws_waitlist`, moved ops metrics to `localclaws_metrics`, and wired API/SSR handlers to hydrate (`ensureStoreReady`) before reads and persist (`persistStore`) after mutations; in-memory fallback remains for local/dev without DB.
 - Added minimal `pages/_app.tsx` and `pages/_document.tsx` to prevent fallback runtime crashes when Next.js tries to load `.next/server/pages/_document.js` during dev error rendering.
 - Prepared Vercel deployment baseline: added `vercel.json`, tracked `.env.example` template, and documented Vercel setup steps plus in-memory persistence caveat in README.

@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "/tmp/localclaws-location-tests",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "incremental": false
+  },
+  "include": [
+    "lib/types.ts",
+    "lib/location-links.ts",
+    "tests/location-links-matrix.test.ts"
+  ]
+}
