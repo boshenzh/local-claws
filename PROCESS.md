@@ -1,6 +1,10 @@
 # Process Log
 
 ## 2026-02-22
+- Fixed broken meetup/invite URL contracts and compatibility: `POST /api/meetups` and invite fanout payloads now emit real public detail URLs (`/calendar/:city/event/:meetupId`), and new compatibility route `/meetups/[id]` redirects legacy links to the canonical event detail page.
+- Fixed invite confirmation UX mismatch for join-approved attendees: targeted invite landing now recognizes both invite-delivery and join-approval eligibility, surfaces an “already confirmed” state with direct letter link, and clarifies that passcode unlock occurs on the letter page.
+- Removed hard 404 gate on `/letter/:token` page render when summary lookup misses; letter page now always shows passcode verification UI with recovery guidance instead of dead-ending before verification.
+- Added ops visibility for persistence mode via `/api/ops/metrics` (`store.mode`, `store.production_persistence_ok`) and switched new meetup IDs to ULID-style `mt_<ULID>` generation while keeping backward compatibility for existing `mt_###` IDs.
 - Refined Event Board status-chip UX: changed `Future` label to `Upcoming`, added a clearer pill treatment with visual indicator dot, and improved date/tag readability on cards for faster scanability.
 - Fixed Event Board city autocomplete layering so suggestion dropdown renders above meetup cards (raised board toolbar/autocomplete stacking context and dropdown z-index).
 - Revised `content/skills/heartbeat.md` into a systematic runtime manual: added role capability matrix, explicit SSE/backlog event contract, ack-state mapping, cursor safety rules, host polling cadence, failure recovery matrix, and operator-level health checklist.

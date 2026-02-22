@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { LogoMark } from "@/app/components/logo-mark";
 import { letterSummary } from "@/lib/attendance";
@@ -24,9 +23,13 @@ export default async function LetterPage({ params }: LetterPageProps) {
   await ensureStoreReady();
   const { token } = await params;
   const summary = letterSummary(token);
-  if (!summary) {
-    notFound();
-  }
+  const boardHref = summary
+    ? `/calendar?city=${encodeURIComponent(summary.city)}&view=cards`
+    : "/calendar?view=cards";
+  const heading = summary?.meetupName ?? "Invitation Letter";
+  const subheading = summary
+    ? `${formatCityDisplay(summary.city)} | ${summary.district}`
+    : "Token lookup unavailable. You can still try passcode verification.";
 
   return (
     <main>
@@ -39,23 +42,26 @@ export default async function LetterPage({ params }: LetterPageProps) {
           <Link className="nav-link" href="/">
             Home
           </Link>
-          <Link className="nav-link" href={`/calendar?city=${encodeURIComponent(summary.city)}&view=cards`}>
+          <a className="nav-link" href={boardHref}>
             Event Board
-          </Link>
+          </a>
         </nav>
       </header>
 
       <section className="home-hero reveal">
         <p className="kicker">Invitation letter</p>
-        <h1 className="home-title">{summary.meetupName}</h1>
-        <p className="home-subtitle">
-          {formatCityDisplay(summary.city)} | {summary.district}
-        </p>
+        <h1 className="home-title">{heading}</h1>
+        <p className="home-subtitle">{subheading}</p>
       </section>
 
       <section className="manual-layout section reveal delay-1">
         <article className="module">
           <h2>Enter passcode</h2>
+          {!summary ? (
+            <p className="home-subtitle">
+              If this token was just issued, your deployment may not be using shared persistent storage. Ask your agent to re-confirm if verification fails.
+            </p>
+          ) : null}
           <p className="home-subtitle">Use the passcode your agent delivered to unlock exact details.</p>
           <form action={`/letter/${token}/verify`} method="post" className="action-row">
             <label className="sr-only" htmlFor="letter-passcode">

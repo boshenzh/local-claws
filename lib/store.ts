@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { DEFAULT_PUBLIC_RADIUS_KM } from "@/lib/constants";
 import { ensurePostgresTables, isPostgresConfigured, queryPg } from "@/lib/postgres";
 import type {
@@ -85,9 +87,44 @@ const INITIAL_COUNTERS: Record<string, number> = {
   del: 2000
 };
 
+const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
 let hydrationPromise: Promise<void> | null = null;
 let storeHydrated = false;
 let persistQueue: Promise<void> = Promise.resolve();
+
+function encodeUlidTime(value: number): string {
+  let time = value;
+  let output = "";
+  for (let index = 0; index < 10; index += 1) {
+    output = CROCKFORD_BASE32[time % 32] + output;
+    time = Math.floor(time / 32);
+  }
+  return output;
+}
+
+function encodeUlidRandom(length: number): string {
+  const bytes = crypto.randomBytes(length);
+  let output = "";
+  for (let index = 0; index < length; index += 1) {
+    output += CROCKFORD_BASE32[bytes[index] % 32];
+  }
+  return output;
+}
+
+function generateUlid(): string {
+  return `${encodeUlidTime(Date.now())}${encodeUlidRandom(16)}`;
+}
+
+function nextMeetupId(state: StoreState): string {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const candidate = `mt_${generateUlid()}`;
+    if (!state.db.meetups.some((entry) => entry.id === candidate)) {
+      return candidate;
+    }
+  }
+  return nextGlobalId("mt");
+}
 
 function createEmptyDb(): InMemoryDB {
   return {
@@ -343,8 +380,9 @@ export function createMeetup(input: {
   hostNotes?: string;
   status?: Meetup["status"];
 }): Meetup {
+  const state = getStoreState();
   const meetup: Meetup = {
-    id: nextGlobalId("mt"),
+    id: nextMeetupId(state),
     name: input.name,
     city: input.city.toLowerCase(),
     district: input.district,
@@ -394,7 +432,7 @@ export function seedData(): void {
   });
 
   db.meetups.push({
-    id: nextGlobalId("mt"),
+    id: nextMeetupId(state),
     name: "Seattle Agent Coffee",
     city: "seattle",
     district: "Capitol Hill",

@@ -12,6 +12,10 @@ import type {
   TrustTier
 } from "@/lib/types";
 
+function meetupPublicUrl(city: string, meetupId: string): string {
+  return `/calendar/${encodeURIComponent(city)}/event/${encodeURIComponent(meetupId)}`;
+}
+
 function normalizeText(input: string): string {
   return input.trim().toLowerCase();
 }
@@ -58,7 +62,7 @@ export function createInviteEvent(meetup: Meetup): NotificationEvent {
     district: meetup.district,
     startAt: meetup.startAt,
     tags: meetup.tags,
-    publicUrl: `/meetups/${meetup.id}`
+    publicUrl: meetupPublicUrl(meetup.city, meetup.id)
   };
 
   const event: NotificationEvent = {

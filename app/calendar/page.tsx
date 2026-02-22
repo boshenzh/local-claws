@@ -10,7 +10,7 @@ import {
   normalizeBoardTimeZone,
   normalizeBoardView,
   parseTagQuery,
-  type BoardView
+  type BoardView,
 } from "@/lib/board";
 import { getCityCalendar, listCities } from "@/lib/calendar";
 import {
@@ -19,7 +19,7 @@ import {
   inferVisitorCity,
   listMajorCities,
   normalizeCityInput,
-  recommendCity
+  recommendCity,
 } from "@/lib/location";
 import { getSiteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
@@ -35,7 +35,9 @@ type EventBoardPageProps = {
   }>;
 };
 
-export async function generateMetadata({ searchParams }: EventBoardPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: EventBoardPageProps): Promise<Metadata> {
   await ensureStoreReady();
   const query = await searchParams;
   const cities = listCities();
@@ -46,7 +48,7 @@ export async function generateMetadata({ searchParams }: EventBoardPageProps): P
   const coordinates = getCityCoordinates(city);
   const geoMeta: Record<string, string | number | Array<string | number>> = {
     "geo.region": cityLabel,
-    "geo.placename": cityLabel
+    "geo.placename": cityLabel,
   };
   if (coordinates) {
     geoMeta.ICBM = `${coordinates.lat}, ${coordinates.lon}`;
@@ -56,22 +58,22 @@ export async function generateMetadata({ searchParams }: EventBoardPageProps): P
     title: `${cityLabel} Meetup Board`,
     description: `Browse open meetups in ${cityLabel} by time, district, and interest tags.`,
     alternates: {
-      canonical
+      canonical,
     },
     openGraph: {
       type: "website",
       url: canonical,
       title: `${cityLabel} Meetup Board | LocalClaws`,
       description: `Open meetup listings for ${cityLabel}, with private venue details revealed only after invitation verification.`,
-      images: ["/localclaws-logo.png"]
+      images: ["/localclaws-logo.png"],
     },
     twitter: {
       card: "summary_large_image",
       title: `${cityLabel} Meetup Board | LocalClaws`,
       description: `Discover local events in ${cityLabel} by district, time, and tags.`,
-      images: ["/localclaws-logo.png"]
+      images: ["/localclaws-logo.png"],
     },
-    other: geoMeta
+    other: geoMeta,
   };
 }
 
@@ -89,7 +91,9 @@ function toDateOnly(value: string): string {
 }
 
 function monthGrid(anchorDate: string): DayCell[] {
-  const [rawY, rawM] = anchorDate.split("-").map((part) => Number.parseInt(part, 10));
+  const [rawY, rawM] = anchorDate
+    .split("-")
+    .map((part) => Number.parseInt(part, 10));
   const now = new Date();
   const y = Number.isFinite(rawY) ? rawY : now.getUTCFullYear();
   const m = Number.isFinite(rawM) ? rawM : now.getUTCMonth() + 1;
@@ -107,14 +111,16 @@ function monthGrid(anchorDate: string): DayCell[] {
       key: `${isoDate}-${index}`,
       isoDate,
       day: current.getUTCDate(),
-      inMonth: current.getUTCMonth() === m - 1
+      inMonth: current.getUTCMonth() === m - 1,
     });
   }
   return cells;
 }
 
 function monthTitle(anchorDate: string): string {
-  const [rawY, rawM] = anchorDate.split("-").map((part) => Number.parseInt(part, 10));
+  const [rawY, rawM] = anchorDate
+    .split("-")
+    .map((part) => Number.parseInt(part, 10));
   const now = new Date();
   const y = Number.isFinite(rawY) ? rawY : now.getUTCFullYear();
   const m = Number.isFinite(rawM) ? rawM : now.getUTCMonth() + 1;
@@ -122,7 +128,7 @@ function monthTitle(anchorDate: string): string {
   return date.toLocaleString("en-US", {
     month: "long",
     year: "numeric",
-    timeZone: "UTC"
+    timeZone: "UTC",
   });
 }
 
@@ -158,17 +164,22 @@ function dedupeCitySlugs(input: string[]): string[] {
   return output;
 }
 
-function resolveCityFromQuery(raw: string | undefined, fallback: string): string {
+function resolveCityFromQuery(
+  raw: string | undefined,
+  fallback: string,
+): string {
   const normalized = raw ? normalizeCityInput(raw) : "";
   return normalized || normalizeCityInput(fallback) || "seattle";
 }
 
-export default async function EventBoardPage({ searchParams }: EventBoardPageProps) {
+export default async function EventBoardPage({
+  searchParams,
+}: EventBoardPageProps) {
   await ensureStoreReady();
   const [query, headerStore, cities] = await Promise.all([
     searchParams,
     headers(),
-    Promise.resolve(listCities())
+    Promise.resolve(listCities()),
   ]);
 
   const visitorCity = inferVisitorCity(headerStore);
@@ -186,20 +197,27 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
     from: query.from,
     to: query.to,
     tz: timezone,
-    tags
+    tags,
   });
 
   const tagsText = tags.join(",");
-  const pickerCities = dedupeCitySlugs(cities.length > 0 ? cities : [calendar.city]);
-  const suggestedCities = dedupeCitySlugs([...listMajorCities(), ...pickerCities]);
-  const citySuggestions = suggestedCities.map((name) => formatCityDisplay(name));
+  const pickerCities = dedupeCitySlugs(
+    cities.length > 0 ? cities : [calendar.city],
+  );
+  const suggestedCities = dedupeCitySlugs([
+    ...listMajorCities(),
+    ...pickerCities,
+  ]);
+  const citySuggestions = suggestedCities.map((name) =>
+    formatCityDisplay(name),
+  );
   const cardsHref = boardHref({
     city: calendar.city,
     view: "cards",
     from: calendar.from,
     to: calendar.to,
     tz: calendar.timezone,
-    tags: tagsText
+    tags: tagsText,
   });
   const monthHref = boardHref({
     city: calendar.city,
@@ -207,7 +225,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
     from: calendar.from,
     to: calendar.to,
     tz: calendar.timezone,
-    tags: tagsText
+    tags: tagsText,
   });
 
   const eventsByDate = new Map<string, typeof calendar.events>();
@@ -248,11 +266,11 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
             geo: {
               "@type": "GeoCoordinates",
               latitude: cityCoordinates.lat,
-              longitude: cityCoordinates.lon
-            }
+              longitude: cityCoordinates.lon,
+            },
           }
-        : {})
-    }
+        : {}),
+    },
   };
   const listSchema = {
     "@context": "https://schema.org",
@@ -263,8 +281,8 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
       "@type": "ListItem",
       position: index + 1,
       name: event.name,
-      url: `${siteUrl}/calendar/${calendar.city}/event/${event.meetup_id}`
-    }))
+      url: `${siteUrl}/calendar/${calendar.city}/event/${event.meetup_id}`,
+    })),
   };
 
   return (
@@ -282,7 +300,7 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
           <LogoMark className="retro-brand-logo" size={42} />
           <div>
             <div className="retro-brand">event board</div>
-            <div className="retro-brand-sub">cards first, calendar second</div>
+            <div className="retro-brand-sub">Agent first, calendar second</div>
           </div>
         </div>
 
@@ -300,7 +318,8 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
         <p className="retro-eyebrow">Public meetup board</p>
         <h1 className="retro-title">Browse by city, then dive into details</h1>
         <p className="retro-lead">
-          Start with event cards for fast scanning. Switch to month view when you want calendar context.
+          Start with event cards for fast scanning. Switch to month view when
+          you want calendar context.
         </p>
       </section>
 
@@ -318,7 +337,9 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
           <input type="hidden" name="from" value={calendar.from} />
           <input type="hidden" name="to" value={calendar.to} />
           <input type="hidden" name="tz" value={calendar.timezone} />
-          {tagsText ? <input type="hidden" name="tags" value={tagsText} /> : null}
+          {tagsText ? (
+            <input type="hidden" name="tags" value={tagsText} />
+          ) : null}
           <button type="submit">Switch city</button>
         </form>
 
@@ -345,10 +366,20 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
           <div className="event-board-grid">
             {calendar.events.length === 0 ? (
               <article className="event-card event-card-empty">
-                <h2>No open meetups in {formatCityDisplay(calendar.city)} yet</h2>
-                <p>Try month view for upcoming windows or switch city to explore nearby activity.</p>
+                <h2>
+                  No open meetups in {formatCityDisplay(calendar.city)} yet
+                </h2>
+                <p>
+                  Try month view for upcoming windows or switch city to explore
+                  nearby activity.
+                </p>
                 <div className="action-row">
-                  <Link className="event-detail-link" href={`/host?city=${encodeURIComponent(calendar.city)}` as Route}>
+                  <Link
+                    className="event-detail-link"
+                    href={
+                      `/host?city=${encodeURIComponent(calendar.city)}` as Route
+                    }
+                  >
                     Become a Host and create an event
                   </Link>
                 </div>
@@ -365,7 +396,9 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                     </p>
 
                     <div className="event-tag-row">
-                      <span className={`event-tag event-tag-status ${isPast ? "past" : "upcoming"}`}>
+                      <span
+                        className={`event-tag event-tag-status ${isPast ? "past" : "upcoming"}`}
+                      >
                         <span className="event-status-dot" aria-hidden="true" />
                         {isPast ? "Past" : "Upcoming"}
                       </span>
@@ -380,7 +413,9 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                       <span>{event.spots_remaining} spots remaining</span>
                       <Link
                         className="event-detail-link"
-                        href={`/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route}
+                        href={
+                          `/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route
+                        }
                       >
                         View details
                       </Link>
@@ -394,7 +429,10 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
           <article className="calendar-card board-month-wrap long-list">
             <div className="calendar-head">
               <h2>{monthHeading}</h2>
-              <p className="muted">Calendar is a subfunction of the Event Board for date-context browsing.</p>
+              <p className="muted">
+                Calendar is a subfunction of the Event Board for date-context
+                browsing.
+              </p>
             </div>
 
             <div className="calendar-scroll">
@@ -409,7 +447,10 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                   const events = eventsByDate.get(cell.isoDate) ?? [];
 
                   return (
-                    <article key={cell.key} className={`day-cell${cell.inMonth ? "" : " outside"}`}>
+                    <article
+                      key={cell.key}
+                      className={`day-cell${cell.inMonth ? "" : " outside"}`}
+                    >
                       <div className="day-num">{cell.day}</div>
                       {events.slice(0, 2).map((event) => (
                         <div className="event-chip" key={event.meetup_id}>
@@ -417,7 +458,11 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                           <span className="event-meta">{event.district}</span>
                         </div>
                       ))}
-                      {events.length > 2 ? <div className="event-meta">+{events.length - 2} more</div> : null}
+                      {events.length > 2 ? (
+                        <div className="event-meta">
+                          +{events.length - 2} more
+                        </div>
+                      ) : null}
                     </article>
                   );
                 })}
@@ -432,7 +477,8 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
                   <article className="agenda-item" key={event.meetup_id}>
                     <p className="agenda-title">{event.name}</p>
                     <p className="agenda-sub">
-                      {event.start_human} | {event.district} | {event.tags.join(", ")}
+                      {event.start_human} | {event.district} |{" "}
+                      {event.tags.join(", ")}
                     </p>
                   </article>
                 ))
@@ -448,7 +494,8 @@ export default async function EventBoardPage({ searchParams }: EventBoardPagePro
             <span className="icon-box">
               <CalendarIcon />
             </span>
-            Public board only: exact venues stay hidden until invitation letter verification.
+            Public board only: exact venues stay hidden until invitation letter
+            verification.
           </div>
         </article>
       </section>

@@ -91,11 +91,32 @@ export default async function InvitePage({ params }: InvitePageProps) {
                   Confirm and get invitation letter
                 </button>
               </form>
+              <p className="home-subtitle">After confirm, open your letter URL and enter passcode to unlock exact location.</p>
             </>
-          ) : (
+          ) : landing.mode === "targeted" && landing.isConfirmed && landing.letterUrl ? (
+            <>
+              <p className="home-subtitle">
+                You are already confirmed for this meetup. Open your invitation letter and enter your passcode to reveal precise location details.
+              </p>
+              <div className="action-row">
+                <a className="btn signal" href={landing.letterUrl}>
+                  Open invitation letter
+                </a>
+              </div>
+            </>
+          ) : landing.mode === "targeted" ? (
             <p className="home-subtitle">
-              This is a public invite preview. Ask your agent for your personalized confirmation link.
+              This personalized invite is not confirmable yet. Wait for invite delivery or join approval, then use the same link to confirm.
             </p>
+          ) : (
+            <>
+              <p className="home-subtitle">
+                This is a public invite preview. Ask your agent for your personalized confirmation link.
+              </p>
+              <p className="home-subtitle">
+                Passcode entry happens on your invitation letter page (`/letter/&lt;token&gt;`) after confirmation.
+              </p>
+            </>
           )}
         </article>
       </section>

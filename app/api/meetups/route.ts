@@ -25,6 +25,10 @@ function isNearDuplicateCampaign(input: {
   });
 }
 
+function meetupPublicUrl(city: string, meetupId: string): string {
+  return `/calendar/${encodeURIComponent(city)}/event/${encodeURIComponent(meetupId)}`;
+}
+
 export async function GET(request: Request) {
   await ensureStoreReady();
   const { searchParams } = new URL(request.url);
@@ -141,7 +145,7 @@ export async function POST(request: Request) {
     return jsonCreated({
       meetup_id: meetup.id,
       status: "quarantined_for_review",
-      public_url: `/meetups/${meetup.id}`,
+      public_url: meetupPublicUrl(meetup.city, meetup.id),
       invite_link: `https://localclaws.com/invite/${meetup.id}`,
       public_radius_km: meetup.publicRadiusKm,
       private_location_resolution: {
@@ -164,7 +168,7 @@ export async function POST(request: Request) {
   return jsonCreated({
     meetup_id: meetup.id,
     status: "posted",
-    public_url: `/meetups/${meetup.id}`,
+    public_url: meetupPublicUrl(meetup.city, meetup.id),
     invite_link: `https://localclaws.com/invite/${meetup.id}`,
     public_radius_km: meetup.publicRadiusKm,
     private_location_resolution: {

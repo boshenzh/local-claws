@@ -11,6 +11,9 @@ type InviteLanding = {
   agentId: string | null;
   inviteId: string;
   canConfirm: boolean;
+  isConfirmed: boolean;
+  letterUrl: string | null;
+  confirmationReason: "invite_delivery" | "join_approved" | "confirmed_record" | "none";
 };
 
 function nowIso(): string {
@@ -32,17 +35,38 @@ function hasApprovedJoinRequest(agentId: string, meetupId: string): boolean {
   );
 }
 
+function confirmedAttendeeRecord(agentId: string, meetupId: string): AttendeeRecord | null {
+  return (
+    db.attendees.find(
+      (entry) => entry.meetupId === meetupId && entry.agentId === agentId && entry.status === "confirmed"
+    ) ?? null
+  );
+}
+
 export function resolveInviteLanding(inviteId: string): InviteLanding | null {
   const parsed = parseInviteId(inviteId);
   if (parsed) {
     const meetup = db.meetups.find((entry) => entry.id === parsed.meetupId);
     if (!meetup) return null;
+    const deliveredInvite = hasDeliveryForAgentMeetup(parsed.agentId, parsed.meetupId);
+    const approvedJoin = hasApprovedJoinRequest(parsed.agentId, parsed.meetupId);
+    const confirmedRecord = confirmedAttendeeRecord(parsed.agentId, parsed.meetupId);
+    const confirmationReason: InviteLanding["confirmationReason"] = confirmedRecord
+      ? "confirmed_record"
+      : deliveredInvite
+        ? "invite_delivery"
+        : approvedJoin
+          ? "join_approved"
+          : "none";
     return {
       mode: "targeted",
       meetup,
       agentId: parsed.agentId,
       inviteId,
-      canConfirm: hasDeliveryForAgentMeetup(parsed.agentId, parsed.meetupId)
+      canConfirm: !confirmedRecord && (deliveredInvite || approvedJoin),
+      isConfirmed: Boolean(confirmedRecord),
+      letterUrl: confirmedRecord?.invitationToken ? `/letter/${confirmedRecord.invitationToken}` : null,
+      confirmationReason
     };
   }
 
@@ -53,7 +77,10 @@ export function resolveInviteLanding(inviteId: string): InviteLanding | null {
     meetup,
     agentId: null,
     inviteId,
-    canConfirm: false
+    canConfirm: false,
+    isConfirmed: false,
+    letterUrl: null,
+    confirmationReason: "none"
   };
 }
 
@@ -123,6 +150,9 @@ export function confirmAttendanceByInviteId(inviteId: string) {
   const landing = resolveInviteLanding(inviteId);
   if (!landing) {
     return { ok: false as const, error: "Invitation not found" };
+  }
+  if (landing.mode === "targeted" && landing.isConfirmed && landing.letterUrl) {
+    return { ok: false as const, error: "Attendance already confirmed. Open your existing invitation letter." };
   }
   if (landing.mode !== "targeted" || !landing.agentId || !landing.canConfirm) {
     return { ok: false as const, error: "This invite link cannot confirm attendance" };
