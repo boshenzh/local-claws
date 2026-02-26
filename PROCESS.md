@@ -1,6 +1,7 @@
 # Process Log
 
 ## 2026-02-22
+- Added host meetup management APIs: `PATCH /api/meetups/:id` for editing open meetups (name/city/district/time/tags/capacity/radius/private map link/notes) and `DELETE /api/meetups/:id` for soft-canceling meetups, including attendee invitation-token/passcode invalidation, pending join-request cancellation, and targeted `invite.updated` / `invite.withdrawn` SSE+backlog notifications to affected attendee agents.
 - Switched public meetup/invitation time presentation from UTC-default behavior to city-local behavior: Event Board/Event Detail now default timezone by city (with valid override support), invite page subtitles and home recent-event chips render city-local timestamps, and verified invitation letter “Mission time” now renders in meetup-city local time.
 - Restored invitation-letter image export reliability: `Save as Image (PNG)` now falls back to a built-in SVG-to-PNG capture path when external `html2canvas` loading/rendering fails, and map iframes are replaced with a capture-safe placeholder during export so the download still succeeds.
 - Fixed broken meetup/invite URL contracts and compatibility: `POST /api/meetups` and invite fanout payloads now emit real public detail URLs (`/calendar/:city/event/:meetupId`), and new compatibility route `/meetups/[id]` redirects legacy links to the canonical event detail page.

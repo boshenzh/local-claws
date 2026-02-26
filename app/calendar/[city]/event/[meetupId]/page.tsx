@@ -3,7 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LogoMark } from "@/app/components/logo-mark";
-import { getPublicMeetupDetail, normalizeBoardTimeZone, normalizeBoardView } from "@/lib/board";
+import {
+  getPublicMeetupDetail,
+  normalizeBoardTimeZone,
+  normalizeBoardView,
+} from "@/lib/board";
 import { formatCityDisplay } from "@/lib/location";
 import { getSiteUrl } from "@/lib/seo";
 import { ensureStoreReady } from "@/lib/store";
@@ -13,10 +17,18 @@ export const dynamic = "force-dynamic";
 
 type EventDetailPageProps = {
   params: Promise<{ city: string; meetupId: string }>;
-  searchParams: Promise<{ tz?: string; view?: string; from?: string; to?: string; tags?: string }>;
+  searchParams: Promise<{
+    tz?: string;
+    view?: string;
+    from?: string;
+    to?: string;
+    tags?: string;
+  }>;
 };
 
-export async function generateMetadata({ params }: Pick<EventDetailPageProps, "params">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: Pick<EventDetailPageProps, "params">): Promise<Metadata> {
   await ensureStoreReady();
   const { city, meetupId } = await params;
   const detail = getPublicMeetupDetail({ city, meetupId });
@@ -26,8 +38,8 @@ export async function generateMetadata({ params }: Pick<EventDetailPageProps, "p
       title: "Event Not Found",
       robots: {
         index: false,
-        follow: false
-      }
+        follow: false,
+      },
     };
   }
 
@@ -37,10 +49,11 @@ export async function generateMetadata({ params }: Pick<EventDetailPageProps, "p
   const description = `${detail.name} in ${detail.district}, ${cityLabel}. Starts ${detail.startLocal}. Public area radius ${detail.publicRadiusKm} km.${tagsText ? ` Tags: ${tagsText}.` : ""}`;
   const geoMeta: Record<string, string | number | Array<string | number>> = {
     "geo.region": cityLabel,
-    "geo.placename": `${detail.district}, ${cityLabel}`
+    "geo.placename": `${detail.district}, ${cityLabel}`,
   };
   if (detail.publicMapCenter) {
-    geoMeta["geo.position"] = `${detail.publicMapCenter.lat};${detail.publicMapCenter.lon}`;
+    geoMeta["geo.position"] =
+      `${detail.publicMapCenter.lat};${detail.publicMapCenter.lon}`;
     geoMeta.ICBM = `${detail.publicMapCenter.lat}, ${detail.publicMapCenter.lon}`;
   }
 
@@ -48,22 +61,22 @@ export async function generateMetadata({ params }: Pick<EventDetailPageProps, "p
     title: `${detail.name} in ${cityLabel}`,
     description,
     alternates: {
-      canonical
+      canonical,
     },
     openGraph: {
       type: "article",
       url: canonical,
       title: `${detail.name} | ${cityLabel} Meetup`,
       description,
-      images: ["/localclaws-logo.png"]
+      images: ["/localclaws-logo.png"],
     },
     twitter: {
       card: "summary_large_image",
       title: `${detail.name} | ${cityLabel} Meetup`,
       description,
-      images: ["/localclaws-logo.png"]
+      images: ["/localclaws-logo.png"],
     },
-    other: geoMeta
+    other: geoMeta,
   };
 }
 
@@ -75,7 +88,26 @@ function mapZoomForRadius(radiusKm: number): number {
   return 10;
 }
 
-export default async function EventDetailPage({ params, searchParams }: EventDetailPageProps) {
+function formatDotDateInTimeZone(isoDate: string, timeZone: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) {
+    return isoDate;
+  }
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(date);
+  const map = new Map(parts.map((part) => [part.type, part.value]));
+  return `${map.get("year")}.${map.get("month")}.${map.get("day")}`;
+}
+
+export default async function EventDetailPage({
+  params,
+  searchParams,
+}: EventDetailPageProps) {
   await ensureStoreReady();
   const [{ city, meetupId }, query] = await Promise.all([params, searchParams]);
 
@@ -84,7 +116,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const detail = getPublicMeetupDetail({
     city,
     meetupId,
-    tz: timezone
+    tz: timezone,
   });
 
   if (!detail) {
@@ -135,23 +167,23 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
       address: {
         "@type": "PostalAddress",
         addressLocality: detail.district,
-        addressRegion: cityLabel
+        addressRegion: cityLabel,
       },
       ...(detail.publicMapCenter
         ? {
             geo: {
               "@type": "GeoCoordinates",
               latitude: detail.publicMapCenter.lat,
-              longitude: detail.publicMapCenter.lon
-            }
+              longitude: detail.publicMapCenter.lon,
+            },
           }
-        : {})
+        : {}),
     },
     organizer: {
       "@type": "Organization",
       name: "LocalClaws",
-      url: siteUrl
-    }
+      url: siteUrl,
+    },
   };
 
   return (
@@ -185,7 +217,15 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         <p className="retro-lead">
           {cityLabel} | {detail.district} | {detail.startLocal}
         </p>
-        <p className="event-map-note">Approximate meetup area: within {detail.publicRadiusKm} km of {detail.district}.</p>
+        <p className="event-map-note">
+          Approximate meetup area: within {detail.publicRadiusKm} km of{" "}
+          {detail.district}.
+        </p>
+        <p className="event-detail-note event-welcome-copy">
+          Welcome. This page is intentionally public-safe: you can browse date,
+          district, tags, and rough map context here before deciding whether to
+          join.
+        </p>
       </section>
 
       <section className="event-detail-layout section reveal delay-2">
@@ -197,12 +237,12 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               {detail.district}
             </li>
             <li>
-              <div className="step-label">Start (friendly)</div>
+              <div className="step-label">Starting time</div>
               {detail.startLocal}
             </li>
             <li>
-              <div className="step-label">Start (city local time)</div>
-              {formatDetailedInTimeZone(detail.startAt, timezone)}
+              <div className="step-label">Date</div>
+              {formatDotDateInTimeZone(detail.startAt, timezone)}
             </li>
             <li>
               <div className="step-label">Timezone</div>
@@ -223,7 +263,9 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
           </ul>
 
           <p className="event-detail-note">
-            Privacy rule: this page shows district-level + radius context only. Exact venue appears only in invitation letters after passcode verification.
+            Privacy rule: this page shows district-level + radius context only.
+            Exact venue appears only in invitation letters after passcode
+            verification.
           </p>
         </article>
 
@@ -236,10 +278,14 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             referrerPolicy="no-referrer-when-downgrade"
             className="event-map"
           />
-          <p className="event-map-note">Map is centered on public area data ({detail.publicRadiusKm} km radius), not exact private venue.</p>
+          <p className="event-map-note">
+            Map is centered on public area data ({detail.publicRadiusKm} km
+            radius), not exact private venue.
+          </p>
           {detail.publicMapCenter ? (
             <p className="event-map-note">
-              Public center derived from host map link and snapped to {detail.publicRadiusKm} km privacy grid.
+              Public center derived from host map link and snapped to{" "}
+              {detail.publicRadiusKm} km privacy grid.
             </p>
           ) : null}
         </article>
@@ -247,11 +293,15 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         <article className="event-detail-card">
           <h2>Join with ClawDBot</h2>
           <p className="event-map-note">
-            Copy this prompt into ClawDBot to start attendee signup flow for this meetup.
+            Copy this prompt into ClawDBot to start attendee signup flow for
+            this meetup.
           </p>
           <pre className="code-block">{clawdbotPrompt}</pre>
           <div className="action-row">
-            <a className="event-detail-link" href={`/invite/${encodeURIComponent(detail.meetupId)}`}>
+            <a
+              className="event-detail-link"
+              href={`/invite/${encodeURIComponent(detail.meetupId)}`}
+            >
               Open public invite preview
             </a>
           </div>

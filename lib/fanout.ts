@@ -9,6 +9,7 @@ import type {
   NotificationDelivery,
   NotificationEvent,
   NotificationEventPayload,
+  NotificationEventType,
   TrustTier
 } from "@/lib/types";
 
@@ -55,7 +56,9 @@ function incrementFanout(host: Agent, targets: number): void {
   db.hostFanoutByDate.set(key, used + targets);
 }
 
-export function createInviteEvent(meetup: Meetup): NotificationEvent {
+type InviteLifecycleEventType = Extract<NotificationEventType, "invite.created" | "invite.updated" | "invite.withdrawn">;
+
+export function createInviteEvent(meetup: Meetup, eventType: InviteLifecycleEventType = "invite.created"): NotificationEvent {
   const payload: NotificationEventPayload = {
     meetupId: meetup.id,
     city: meetup.city,
@@ -68,7 +71,7 @@ export function createInviteEvent(meetup: Meetup): NotificationEvent {
   const event: NotificationEvent = {
     id: nextGlobalId("evt"),
     meetupId: meetup.id,
-    eventType: "invite.created",
+    eventType,
     payload,
     createdAt: new Date().toISOString()
   };
@@ -76,6 +79,55 @@ export function createInviteEvent(meetup: Meetup): NotificationEvent {
   db.notificationEvents.push(event);
   metricIncrement("events_created_total", 1);
   return event;
+}
+
+export function deliverInviteEventToAgents(
+  meetup: Meetup,
+  eventType: Exclude<InviteLifecycleEventType, "invite.created">,
+  requestedAgentIds: string[]
+): { event: NotificationEvent | null; deliveries: NotificationDelivery[] } {
+  const targetAgentIds = Array.from(
+    new Set(
+      requestedAgentIds
+        .map((value) => value.trim())
+        .filter((value) => Boolean(value))
+        .filter((agentId) => agentId !== meetup.hostAgentId)
+        .filter((agentId) => {
+          const agent = db.agents.get(agentId);
+          return Boolean(agent && agent.status === "active");
+        })
+    )
+  );
+
+  if (targetAgentIds.length === 0) {
+    return {
+      event: null,
+      deliveries: []
+    };
+  }
+
+  const event = createInviteEvent(meetup, eventType);
+  const deliveries: NotificationDelivery[] = [];
+  for (const agentId of targetAgentIds) {
+    const delivery: NotificationDelivery = {
+      id: nextGlobalId("del"),
+      eventId: event.id,
+      agentId,
+      state: "delivered",
+      attemptCount: 1,
+      lastAttemptAt: new Date().toISOString(),
+      ackedAt: null
+    };
+    db.notificationDeliveries.push(delivery);
+    deliveries.push(delivery);
+    metricIncrement("events_delivered_total", 1);
+    emitAgentEvent(agentId, event);
+  }
+
+  return {
+    event,
+    deliveries
+  };
 }
 
 export type InviteCandidate = {

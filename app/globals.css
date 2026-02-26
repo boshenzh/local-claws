@@ -185,6 +185,10 @@ main {
   color: #2b3a34;
 }
 
+.invite-intro {
+  margin-top: 0.08rem;
+}
+
 .invite-chip-row {
   margin-top: 0.25rem;
   display: flex;
@@ -224,6 +228,17 @@ main {
 .invite-copy,
 .invite-note {
   margin: 0;
+}
+
+.invite-steps {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.invite-steps li {
+  color: #2f3a37;
 }
 
 .invite-code-block {
@@ -1412,6 +1427,14 @@ main {
 .event-detail-card {
   grid-column: span 6;
   padding: 1rem;
+}
+
+.event-detail-intro {
+  grid-column: 1 / -1;
+}
+
+.event-welcome-copy {
+  max-width: 72ch;
 }
 
 .event-detail-card h2 {

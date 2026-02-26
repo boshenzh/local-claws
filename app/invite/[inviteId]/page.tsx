@@ -44,8 +44,8 @@ export const metadata: Metadata = {
   robots: {
     index: false,
     follow: false,
-    nocache: true
-  }
+    nocache: true,
+  },
 };
 
 export default async function InvitePage({ params }: InvitePageProps) {
@@ -62,7 +62,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   const meetupTimezone = resolveCityTimeZone(meetup.city);
   const requestOrigin = getRequestOrigin(headerStore);
   const inviteUrl = `${requestOrigin}/invite/${encodeURIComponent(inviteId)}`;
-  const clawdbotPrompt = `Read ${ATTENDEE_SKILL_URL}, then use this invite link ${inviteUrl} to join/signup for this meetup and tell me the next step.`;
+  const clawdbotPrompt = `Please read ${ATTENDEE_SKILL_URL}. I want to join this LocalClaws meetup: ${inviteUrl}. Help me sign up and guide me through the next steps.`;
 
   return (
     <main className="invite-page">
@@ -82,11 +82,15 @@ export default async function InvitePage({ params }: InvitePageProps) {
       </header>
 
       <section className="home-hero invite-hero reveal delay-1">
-        <p className="kicker">Invitation</p>
+        <p className="kicker">You are invited</p>
         <h1 className="home-title invite-title">{meetup.name}</h1>
         <p className="home-subtitle invite-subtitle">
           {city} | {meetup.district} |{" "}
           {formatDetailedInTimeZone(meetup.startAt, meetupTimezone)}
+        </p>
+        <p className="home-subtitle invite-intro">
+          Welcome to LocalClaws. This page shares the public meetup details and
+          helps you take the next step to join.
         </p>
         <div className="invite-chip-row" aria-label="Public meetup details">
           <span className="invite-chip">City: {city}</span>
@@ -100,56 +104,79 @@ export default async function InvitePage({ params }: InvitePageProps) {
 
       <section className="invite-grid section reveal delay-2">
         <article className="module invite-card invite-card-primary">
-          <h2>Next step</h2>
+          <h2>How to join</h2>
           {landing.mode === "targeted" && landing.canConfirm ? (
             <>
               <p className="home-subtitle invite-copy">
-                Click confirm to generate your invitation letter link and fun passcode.
+                Great news, this invitation is ready for you.
               </p>
-              <form action={`/invite/${inviteId}/confirm`} method="post" className="action-row">
+              <form
+                action={`/invite/${inviteId}/confirm`}
+                method="post"
+                className="action-row"
+              >
                 <button className="btn signal" type="submit">
-                  Confirm and get invitation letter
+                  Join and open my invitation
                 </button>
               </form>
-              <p className="home-subtitle invite-copy">
-                After confirm, open your letter URL and enter passcode to unlock exact location.
-              </p>
+              <ol className="invite-steps">
+                <li>Click the button above.</li>
+                <li>
+                  You will receive your private invitation letter and code
+                  phrase.
+                </li>
+                <li>Open your letter to view exact meetup location details.</li>
+              </ol>
             </>
-          ) : landing.mode === "targeted" && landing.isConfirmed && landing.letterUrl ? (
+          ) : landing.mode === "targeted" &&
+            landing.isConfirmed &&
+            landing.letterUrl ? (
             <>
               <p className="home-subtitle invite-copy">
-                You are already confirmed for this meetup. Open your invitation letter and enter your passcode to reveal precise location details.
+                You are on the guest list. Open your invitation letter whenever
+                you are ready.
               </p>
               <div className="action-row">
                 <a className="btn signal" href={landing.letterUrl}>
-                  Open invitation letter
+                  Open my invitation letter
                 </a>
               </div>
+              <p className="home-subtitle invite-copy">
+                Your letter includes private location details and meetup notes.
+              </p>
             </>
           ) : landing.mode === "targeted" ? (
-            <p className="home-subtitle invite-copy">
-              This personalized invite is not confirmable yet. Wait for invite delivery or join approval, then use the same link to confirm.
-            </p>
+            <>
+              <p className="home-subtitle invite-copy">
+                Your invite is being prepared. Please check back shortly and use
+                this same page again.
+              </p>
+              <p className="home-subtitle invite-copy">
+                If needed, ask your assistant to check your join status.
+              </p>
+            </>
           ) : (
             <>
               <p className="home-subtitle invite-copy">
-                This is a public invite preview. Paste the prompt on the right into ClawDBot to start signup.
+                To request a spot, send the message on the right to your
+                assistant.
               </p>
               <p className="home-subtitle invite-copy">
-                Passcode entry happens on your invitation letter page (`/letter/&lt;token&gt;`) after confirmation.
+                Once approved, you will receive your private invitation letter
+                with exact location access.
               </p>
             </>
           )}
         </article>
 
         <article className="module invite-card">
-          <h2>Paste into ClawDBot</h2>
+          <h2>Send this message to your assistant</h2>
           <p className="tutorial-copy invite-copy">
-            Paste this into ClawDBot to join this meetup workflow.
+            Copy this message and send it to ClawDBot.
           </p>
           <pre className="code-block invite-code-block">{clawdbotPrompt}</pre>
           <p className="muted invite-note">
-            ClawDBot will guide you through confirmation and passcode delivery.
+            Your assistant will guide you step by step.
           </p>
         </article>
       </section>
