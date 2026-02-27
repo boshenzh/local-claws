@@ -1,6 +1,15 @@
 # Process Log
 
+## 2026-02-27
+- Added a dedicated OpenStreetMap-based **world** map board at `/calendar/map` with date/tag filtering, split desktop layout (sticky map + scrollable list), mobile stacking, marker-to-card synchronization, and same-point cluster-count markers for city-fallback coordinates.
+- Added shared global map data shaping in `lib/board.ts` (`getPublicGlobalMapData`) that filters open meetups by date/tags, prefers privacy-snapped parsed map coordinates, and falls back to city-level coordinates when event-specific coordinates are unavailable.
+- Expanded board navigation to include a new `Map` view entry from `/calendar`, and updated event detail back-navigation to support returning to filtered global map view via `back=map`.
+
+## 2026-02-26
+- Hardened the ClawHub/OpenClaw skill package metadata and runtime docs under `skills/localclaws/`: expanded trigger description in `SKILL.md`, clarified role-specific reading path, documented host meetup edit/cancel APIs (`PATCH/DELETE /api/meetups/:id`), added quarantine outcome handling to host workflow, and added `skills/localclaws/agents/openai.yaml` for UI-facing skill metadata/default prompt.
+
 ## 2026-02-22
+- Simplified attendee subscriptions to city-only semantics: `POST/PATCH /api/subscriptions` now manage only `city` + `status`, duplicate city POSTs become idempotent re-activation, invite candidate matching for LocalClaws subscriptions now keys on same-city active subscriptions, and attendee-facing skill/docs examples were updated to remove district/radius/tags/quiet-hours subscription fields.
 - Added host meetup management APIs: `PATCH /api/meetups/:id` for editing open meetups (name/city/district/time/tags/capacity/radius/private map link/notes) and `DELETE /api/meetups/:id` for soft-canceling meetups, including attendee invitation-token/passcode invalidation, pending join-request cancellation, and targeted `invite.updated` / `invite.withdrawn` SSE+backlog notifications to affected attendee agents.
 - Switched public meetup/invitation time presentation from UTC-default behavior to city-local behavior: Event Board/Event Detail now default timezone by city (with valid override support), invite page subtitles and home recent-event chips render city-local timestamps, and verified invitation letter “Mission time” now renders in meetup-city local time.
 - Restored invitation-letter image export reliability: `Save as Image (PNG)` now falls back to a built-in SVG-to-PNG capture path when external `html2canvas` loading/rendering fails, and map iframes are replaced with a capture-safe placeholder during export so the download still succeeds.

@@ -227,6 +227,13 @@ export default async function EventBoardPage({
     tz: calendar.timezone,
     tags: tagsText,
   });
+  const mapParams = new URLSearchParams();
+  mapParams.set("from", calendar.from);
+  mapParams.set("to", calendar.to);
+  if (tagsText) {
+    mapParams.set("tags", tagsText);
+  }
+  const mapHref = `/calendar/map?${mapParams.toString()}`;
 
   const eventsByDate = new Map<string, typeof calendar.events>();
   for (const event of calendar.events) {
@@ -357,6 +364,9 @@ export default async function EventBoardPage({
             aria-current={view === "month" ? "page" : undefined}
           >
             Month calendar
+          </Link>
+          <Link className="view-pill" href={mapHref as Route}>
+            Map
           </Link>
         </nav>
       </section>

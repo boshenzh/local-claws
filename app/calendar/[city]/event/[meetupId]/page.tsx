@@ -23,6 +23,7 @@ type EventDetailPageProps = {
     from?: string;
     to?: string;
     tags?: string;
+    back?: string;
   }>;
 };
 
@@ -138,7 +139,21 @@ export default async function EventDetailPage({
     boardQuery.set("tags", query.tags);
   }
 
-  const boardHref = `/calendar?${boardQuery.toString()}`;
+  const mapBackQuery = new URLSearchParams();
+  if (typeof query.from === "string" && query.from.trim()) {
+    mapBackQuery.set("from", query.from);
+  }
+  if (typeof query.to === "string" && query.to.trim()) {
+    mapBackQuery.set("to", query.to);
+  }
+  if (typeof query.tags === "string" && query.tags.trim()) {
+    mapBackQuery.set("tags", query.tags);
+  }
+  const prefersMapBack = query.back === "map";
+  const boardHref = prefersMapBack
+    ? `/calendar/map?${mapBackQuery.toString()}`
+    : `/calendar?${boardQuery.toString()}`;
+  const backLinkLabel = prefersMapBack ? "Back to map" : "Back to board";
   const mapQuery = `${detail.district}, ${formatCityDisplay(detail.city)}`;
   const mapZoom = mapZoomForRadius(detail.publicRadiusKm);
   const mapSearch = detail.publicMapCenter
@@ -203,7 +218,7 @@ export default async function EventDetailPage({
 
         <nav className="retro-nav-links" aria-label="Event detail navigation">
           <a className="retro-nav-link" href={boardHref}>
-            Back to board
+            {backLinkLabel}
           </a>
           <Link className="retro-nav-link" href="/">
             Home

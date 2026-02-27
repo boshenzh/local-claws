@@ -1219,6 +1219,7 @@ main {
 }
 
 .board-picker input[type="search"],
+.board-picker input[type="date"],
 .board-picker button {
   min-height: 40px;
   border: 2px solid var(--retro-line);
@@ -1231,6 +1232,11 @@ main {
   padding: 0 0.5rem;
   min-width: 240px;
   width: 100%;
+}
+
+.board-picker input[type="date"] {
+  background: #fffdf0;
+  padding: 0 0.5rem;
 }
 
 .city-autocomplete-list {
@@ -1457,6 +1463,148 @@ main {
   background: #fbf6e7;
 }
 
+.map-board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.map-panel,
+.map-list-panel {
+  border: 2px solid var(--retro-line);
+  border-radius: 16px;
+  background: #fff6da;
+  box-shadow: 4px 4px 0 #2f2a1f;
+  padding: 0.9rem;
+}
+
+.map-panel {
+  position: sticky;
+  top: 0.9rem;
+}
+
+.map-panel-head h2 {
+  margin: 0;
+  font-family: "IBM Plex Serif", "Georgia", serif;
+}
+
+.map-panel-head p {
+  margin-top: 0.42rem;
+}
+
+.city-map-canvas {
+  width: 100%;
+  height: min(72vh, 620px);
+  border: 2px solid #6e6041;
+  border-radius: 11px;
+  background: #fbf6e7;
+}
+
+.map-event-list {
+  margin-top: 0.7rem;
+  display: grid;
+  gap: 0.62rem;
+  max-height: min(72vh, 620px);
+  overflow-y: auto;
+  padding-right: 0.12rem;
+}
+
+.map-event-card {
+  padding: 0.7rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.map-event-card.is-active {
+  border-color: #1f5d8d;
+  box-shadow: 4px 4px 0 #1f5d8d;
+}
+
+.map-card-select {
+  display: block;
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.map-card-select h3 {
+  margin: 0.22rem 0 0.24rem;
+  font-family: "IBM Plex Serif", "Georgia", serif;
+  color: #1f1a10;
+}
+
+.map-event-foot {
+  margin-top: 0.64rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  color: #574b30;
+  font-size: 0.81rem;
+  flex-wrap: wrap;
+}
+
+.map-marker-chip {
+  border: 1px solid #4c6d8c;
+  border-radius: 999px;
+  padding: 0.15rem 0.52rem;
+  background: #edf7ff;
+  color: #1e496e;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.map-marker-chip.missing {
+  border-color: #8b5b48;
+  background: #fdece6;
+  color: #6a2f1e;
+}
+
+.city-map-pin-wrap {
+  background: transparent;
+  border: 0;
+}
+
+.city-map-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 2px solid #1f5d8d;
+  background: #d4eeff;
+  color: #173f5f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Space Mono", "IBM Plex Sans", sans-serif;
+  font-size: 0.8rem;
+  line-height: 1;
+  font-weight: 700;
+  box-shadow: 2px 2px 0 #173f5f;
+}
+
+.city-map-pin.is-fallback {
+  border-color: #6b5f40;
+  background: #fff4d1;
+  color: #4b4028;
+  box-shadow: 2px 2px 0 #4b4028;
+}
+
+.city-map-pin.is-cluster {
+  width: 34px;
+  height: 34px;
+}
+
+.city-map-pin.is-active {
+  transform: scale(1.08);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1480,6 +1628,22 @@ main {
 
   .event-detail-card {
     grid-column: span 12;
+  }
+
+  .map-board-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-panel {
+    position: static;
+  }
+
+  .city-map-canvas {
+    height: min(52vh, 420px);
+  }
+
+  .map-event-list {
+    max-height: none;
   }
 
   .tutorial-card-single {

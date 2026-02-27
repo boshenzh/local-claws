@@ -1,5 +1,5 @@
 import { DEFAULT_PUBLIC_RADIUS_KM } from "@/lib/constants";
-import { resolveCityTimeZone } from "@/lib/location";
+import { getCityCoordinates, resolveCityTimeZone } from "@/lib/location";
 import { db } from "@/lib/store";
 import { formatFriendlyInTimeZone, isValidIanaTimeZone } from "@/lib/time";
 
@@ -16,6 +16,41 @@ export type PublicMeetupDetail = {
   tags: string[];
   spotsRemaining: number;
   publicMapCenter: { lat: number; lon: number; source: "parsed_link" } | null;
+};
+
+export type PublicMapMarkerSource = "parsed_link" | "city_fallback";
+
+export type PublicMapEvent = {
+  meetupId: string;
+  name: string;
+  city: string;
+  district: string;
+  startAt: string;
+  startHuman: string;
+  tags: string[];
+  spotsRemaining: number;
+  markerKey: string | null;
+  markerLat: number | null;
+  markerLon: number | null;
+  markerSource: PublicMapMarkerSource | null;
+  markerClusterCount: number;
+  markerClusterMeetupIds: string[];
+};
+
+export type PublicMapMarker = {
+  key: string;
+  lat: number;
+  lon: number;
+  source: PublicMapMarkerSource;
+  meetupIds: string[];
+  count: number;
+};
+
+export type PublicGlobalMapData = {
+  from: string;
+  to: string;
+  events: PublicMapEvent[];
+  markers: PublicMapMarker[];
 };
 
 function normalizePublicRadiusKm(value: number | undefined): number {
@@ -105,5 +140,108 @@ export function getPublicMeetupDetail(input: {
     tags: meetup.tags,
     spotsRemaining: Math.max(0, meetup.maxParticipants - confirmedCount),
     publicMapCenter: parsedCenter ? { ...parsedCenter, source: "parsed_link" } : null
+  };
+}
+
+function markerKeyFromCoordinates(lat: number, lon: number): string {
+  return `${lat.toFixed(5)},${lon.toFixed(5)}`;
+}
+
+export function getPublicGlobalMapData(input: {
+  from?: string;
+  to?: string;
+  tags?: string[];
+}): PublicGlobalMapData {
+  const from = input.from ?? new Date().toISOString().slice(0, 10);
+  const to = input.to ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10);
+  const fromDate = new Date(`${from}T00:00:00Z`);
+  const toDate = new Date(`${to}T23:59:59Z`);
+  const tagSet = new Set((input.tags ?? []).map((value) => value.toLowerCase()));
+
+  const eventsBase: PublicMapEvent[] = db.meetups
+    .filter((meetup) => meetup.status === "open")
+    .filter((meetup) => {
+      const date = new Date(meetup.startAt);
+      return date >= fromDate && date <= toDate;
+    })
+    .filter((meetup) => {
+      if (tagSet.size === 0) return true;
+      return meetup.tags.some((tag) => tagSet.has(tag.toLowerCase()));
+    })
+    .sort((a, b) => a.startAt.localeCompare(b.startAt))
+    .map((meetup) => {
+      const timezone = resolveCityTimeZone(meetup.city);
+      const confirmedCount = db.attendees.filter(
+        (attendee) => attendee.meetupId === meetup.id && attendee.status === "confirmed"
+      ).length;
+      const parsedCenter = toPublicMapCenter({
+        lat: meetup.privateLocationLat,
+        lon: meetup.privateLocationLon,
+        radiusKm: normalizePublicRadiusKm(meetup.publicRadiusKm)
+      });
+      const cityCenter = getCityCoordinates(meetup.city);
+      const markerCenter = parsedCenter ?? cityCenter;
+      const markerSource: PublicMapMarkerSource | null = parsedCenter
+        ? "parsed_link"
+        : markerCenter
+          ? "city_fallback"
+          : null;
+      const markerKey = markerCenter ? markerKeyFromCoordinates(markerCenter.lat, markerCenter.lon) : null;
+
+      return {
+        meetupId: meetup.id,
+        name: meetup.name,
+        city: meetup.city,
+        district: meetup.district,
+        startAt: meetup.startAt,
+        startHuman: formatFriendlyInTimeZone(meetup.startAt, timezone),
+        tags: meetup.tags,
+        spotsRemaining: Math.max(0, meetup.maxParticipants - confirmedCount),
+        markerKey,
+        markerLat: markerCenter?.lat ?? null,
+        markerLon: markerCenter?.lon ?? null,
+        markerSource,
+        markerClusterCount: 0,
+        markerClusterMeetupIds: []
+      };
+    });
+
+  const clusters = new Map<string, string[]>();
+  for (const event of eventsBase) {
+    if (!event.markerKey) continue;
+    const existing = clusters.get(event.markerKey) ?? [];
+    existing.push(event.meetupId);
+    clusters.set(event.markerKey, existing);
+  }
+
+  const markersByKey = new Map<string, PublicMapMarker>();
+  for (const event of eventsBase) {
+    if (!event.markerKey || event.markerLat === null || event.markerLon === null || !event.markerSource) continue;
+    if (markersByKey.has(event.markerKey)) continue;
+    const meetupIds = clusters.get(event.markerKey) ?? [event.meetupId];
+    markersByKey.set(event.markerKey, {
+      key: event.markerKey,
+      lat: event.markerLat,
+      lon: event.markerLon,
+      source: event.markerSource,
+      meetupIds,
+      count: meetupIds.length
+    });
+  }
+
+  const events = eventsBase.map((event) => {
+    const meetupIds = event.markerKey ? clusters.get(event.markerKey) ?? [] : [];
+    return {
+      ...event,
+      markerClusterCount: meetupIds.length,
+      markerClusterMeetupIds: meetupIds
+    };
+  });
+
+  return {
+    from,
+    to,
+    events,
+    markers: Array.from(markersByKey.values())
   };
 }
