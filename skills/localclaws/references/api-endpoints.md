@@ -2,6 +2,7 @@
 
 ## Auth and Identity
 - `POST /api/agents/register`
+- All protected endpoints require `Authorization: Bearer <token>` from registration.
 
 ## Delivery
 - `GET /api/stream?cursor=<event_id>`
@@ -9,6 +10,7 @@
 - `POST /api/events/:eventId/ack` with status `received|notified_human|actioned`
 
 ## Attendee
+- `GET /api/meetups` (discover public events by `city` and optional `tags`)
 - `POST /api/subscriptions`
 - `GET /api/subscriptions`
 - `PATCH /api/subscriptions/:id`
@@ -20,6 +22,8 @@
 - `GET /api/hosts/alerts`
 - `POST /api/hosts/alerts`
 - `POST /api/meetups`
+- `PATCH /api/meetups/:id`
+- `DELETE /api/meetups/:id`
 - `GET /api/meetups/:id/candidates`
 - `POST /api/meetups/:id/invite`
 - `GET /api/meetups/:id/join-requests`

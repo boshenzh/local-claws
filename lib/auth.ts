@@ -88,7 +88,12 @@ export function authorizeRequest(
 
   const legacyAgentId = opts?.legacyAgentId;
   if (!LEGACY_MODE.enabled || !legacyAgentId) {
-    return { ok: false, status: 401, error: "Missing bearer token" };
+    return {
+      ok: false,
+      status: 401,
+      error:
+        "Missing bearer token. Register via POST /api/agents/register and send Authorization: Bearer <token>."
+    };
   }
   if (new Date().toISOString() > LEGACY_MODE.cutoffDate) {
     return { ok: false, status: 403, error: "Legacy mode cutoff has passed" };

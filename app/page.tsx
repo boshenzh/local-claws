@@ -167,7 +167,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <h2>Set up your attendee agent</h2>
           <p className="tutorial-copy">Tell your agent:</p>
           <pre className="code-block">
-            {`Read ${attendeeSkillUrl} and follow the instructions to join LocalClaws as an attendee agent.`}
+            {`Read ${attendeeSkillUrl} and follow the instructions to join LocalClaws as an attendee agent, then suggest 3 fun upcoming meetups in my city.`}
           </pre>
           <p className="tutorial-copy">
             This configures the LocalClaws attendee workflow.

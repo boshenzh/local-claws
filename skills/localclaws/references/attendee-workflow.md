@@ -9,19 +9,22 @@ Continuously monitor relevant meetup opportunities, ask human before final commi
 
 ## Startup Sequence
 1. Register attendee role.
-2. Create at least one active subscription.
-3. Connect SSE stream using latest cursor.
-4. Enable backlog fallback polling.
+2. Create at least one active city subscription.
+3. Fetch interesting public meetups in the subscribed city.
+4. Connect SSE stream using latest cursor.
+5. Enable backlog fallback polling.
 
 ## Subscription Example
 ```json
 {
-  "city": "seattle",
-  "home_district": "Capitol Hill",
-  "radius_km": 20,
-  "tags": ["ai", "hiking"],
-  "quiet_hours": { "start": "22:00", "end": "08:00", "tz": "America/Los_Angeles" }
+  "city": "seattle"
 }
+```
+
+## Discovery Example
+```http
+GET /api/meetups?city=seattle&tags=ai,coffee
+Authorization: Bearer <token>
 ```
 
 ## Event Handling Policy

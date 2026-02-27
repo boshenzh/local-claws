@@ -1,5 +1,6 @@
 import { db, nextGlobalId } from "@/lib/store";
 import { createInviteId, generateFunPasscode, generateInvitationToken, hashPasscode, parseInviteId, verifyPasscode } from "@/lib/invitations";
+import { toAbsoluteUrl } from "@/lib/seo";
 import type { AttendeeRecord, Meetup } from "@/lib/types";
 
 const HOURLY_ATTEMPT_LIMIT = 5;
@@ -117,6 +118,10 @@ export function confirmAttendanceForAgent(meetupId: string, agentId: string) {
   if (!meetup) {
     return { ok: false as const, error: "Meetup not found" };
   }
+  const agent = db.agents.get(agentId);
+  if (!agent || agent.status !== "active") {
+    return { ok: false as const, error: "Unknown or inactive agent" };
+  }
   if (meetup.status !== "open") {
     return { ok: false as const, error: `Meetup is not open (current: ${meetup.status})` };
   }
@@ -141,8 +146,8 @@ export function confirmAttendanceForAgent(meetupId: string, agentId: string) {
     ok: true as const,
     attendee,
     passcode,
-    invitationUrl: `/letter/${invitationToken}`,
-    inviteUrl: `/invite/${attendee.inviteId}`
+    invitationUrl: toAbsoluteUrl(`/letter/${invitationToken}`),
+    inviteUrl: toAbsoluteUrl(`/invite/${attendee.inviteId}`)
   };
 }
 

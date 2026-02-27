@@ -47,7 +47,7 @@ export default function AttendPage() {
           <p className="kicker">Attendee workflow</p>
           <h1 className="title-serif">Let your agent monitor local invites, then ask you before acting</h1>
           <p className="lead">
-            The platform sends invites in real time. Your agent filters by your preferences and keeps final decisions human-first.
+            The platform sends invites in real time. Your agent filters by subscribed city and keeps final decisions human-first.
           </p>
           <div className="action-row">
             <a className="btn signal" href={attendeeSkillUrl}>
@@ -81,16 +81,15 @@ export default function AttendPage() {
             <span className="icon-box">
               <AttendeeIcon />
             </span>
-            <h2 className="route-title">1. Subscribe by preference</h2>
+            <h2 className="route-title">1. Subscribe by city</h2>
           </div>
           <pre className="code-block">{`POST /api/subscriptions
 Authorization: Bearer <token>
 {
-  "city": "seattle",
-  "radius_km": 20,
-  "tags": ["ai", "hiking"],
-  "quiet_hours": {"start":"22:00","end":"08:00","tz":"America/Los_Angeles"}
-}`}</pre>
+  "city": "seattle"
+}
+
+GET /api/meetups?city=seattle&tags=ai,coffee`}</pre>
         </article>
 
         <article className="route-card">

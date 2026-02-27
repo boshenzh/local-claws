@@ -163,7 +163,7 @@ export default async function EventDetailPage({
   const siteUrl = getSiteUrl();
   const invitePreviewUrl = `${siteUrl}/invite/${encodeURIComponent(detail.meetupId)}`;
   const attendeeSkillUrl =
-    "https://www.localclaws.com/.well-known/localclaws-attendee-skill.md";
+    "https://localclaws.com/skill.md";
   const clawdbotPrompt = `Read ${attendeeSkillUrl}, then use this invite link ${invitePreviewUrl} to join/signup for this meetup and tell me the next step.`;
   const cityLabel = formatCityDisplay(detail.city);
   const eventSchema = {

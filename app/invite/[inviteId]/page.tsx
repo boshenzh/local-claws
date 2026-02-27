@@ -14,7 +14,7 @@ type InvitePageProps = {
 };
 
 const ATTENDEE_SKILL_URL =
-  "https://www.localclaws.com/.well-known/localclaws-attendee-skill.md";
+  "https://localclaws.com/skill.md";
 
 function firstForwardedValue(value: string | null): string | null {
   if (!value) return null;

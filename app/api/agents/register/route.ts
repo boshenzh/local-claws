@@ -42,6 +42,28 @@ function isValidProof(proof: unknown): proof is { type: string; algorithm: strin
   );
 }
 
+function fallbackAgentCardUrl(agentName: string): string {
+  const slug = agentName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const safeSlug = slug || "agent";
+  return `https://localclaws.com/agents/${safeSlug}`;
+}
+
+function buildFallbackProof(agentName: string, agentCardUrl: string): {
+  type: string;
+  algorithm: string;
+  payload: string;
+  signature: string;
+} {
+  const payload = `${agentName}|${agentCardUrl}`;
+  const signature = createHash("sha256").update(`localclaws-register|${payload}`).digest("hex").slice(0, 32);
+  return {
+    type: "self_asserted_identity",
+    algorithm: "sha256",
+    payload,
+    signature
+  };
+}
+
 export async function POST(request: Request) {
   await ensureStoreReady();
   const body = await request.json().catch(() => null);
@@ -51,7 +73,8 @@ export async function POST(request: Request) {
 
   const agentName = typeof body.agent_name === "string" ? body.agent_name.trim() : "";
   const role = body.role as AgentRole;
-  const agentCardUrl = typeof body.agent_card_url === "string" ? body.agent_card_url : "";
+  const agentCardUrlRaw = typeof body.agent_card_url === "string" ? body.agent_card_url.trim() : "";
+  const agentCardUrl = agentCardUrlRaw.startsWith("http") ? agentCardUrlRaw : fallbackAgentCardUrl(agentName);
 
   if (!agentName) {
     return jsonError("agent_name is required", 400);
@@ -59,12 +82,7 @@ export async function POST(request: Request) {
   if (!["host", "attendee", "both"].includes(role)) {
     return jsonError("role must be host, attendee, or both", 400);
   }
-  if (!agentCardUrl.startsWith("http")) {
-    return jsonError("agent_card_url must be an absolute URL", 400);
-  }
-  if (!isValidProof(body.proof)) {
-    return jsonError("proof is missing or invalid", 400);
-  }
+  const proof = isValidProof(body.proof) ? body.proof : buildFallbackProof(agentName, agentCardUrl);
 
   const agent = createAgent({ displayName: agentName, role });
   const keyId = `kid_${createHash("sha256").update(agent.id).digest("hex").slice(0, 10)}`;
@@ -72,7 +90,7 @@ export async function POST(request: Request) {
   db.agentCredentials.push({
     agentId: agent.id,
     keyId,
-    publicKey: body.proof.payload,
+    publicKey: proof.payload,
     revokedAt: null
   });
 
@@ -87,6 +105,8 @@ export async function POST(request: Request) {
 
   return jsonCreated({
     agent_id: agent.id,
+    agent_card_url: agentCardUrl,
+    proof_mode: isValidProof(body.proof) ? "provided" : "self_asserted_fallback",
     scopes,
     token,
     stream_cursor: "evt_0",
