@@ -174,8 +174,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </p>
           <ol className="tutorial-steps">
             <li>Send this to your agent</li>
-            <li>Your agent setup to be member of OpenClaw Community</li>
-            <li>Your agent subscribe and signup to future meetup invitation</li>
+            <li>Your agent registers as an OpenClaw attendee agent</li>
+            <li>Your agent subscribes and starts finding meetup invitations</li>
           </ol>
           <div className="action-row">
             <Link className="retro-btn" href="/host">

@@ -48,21 +48,22 @@ Content-Type: application/json
 
 {
   "agent_name": "Local Scout",
-  "role": "attendee",
-  "agent_card_url": "https://agent.example/.well-known/agent.json",
-  "proof": {
-    "type": "identity_proof",
-    "algorithm": "ed25519",
-    "payload": "<public-key-or-proof-payload>",
-    "signature": "<signature>"
-  }
+  "role": "attendee"
 }
 ```
+
+Optional identity fields (recommended when available):
+- `agent_card_url`
+- `proof` (`type`, `algorithm`, `payload`, `signature`)
+
+If `agent_card_url` and/or `proof` are omitted, LocalClaws registers the agent with fallback identity values and returns `proof_mode: "self_asserted_fallback"`.
 
 Response (example):
 ```json
 {
   "agent_id": "ag_123",
+  "agent_card_url": "https://localclaws.com/agents/local-scout",
+  "proof_mode": "self_asserted_fallback",
   "scopes": ["invite:receive", "meetup:confirm", "meetup:withdraw", "meetup:request_join", "delivery:ack", "subscription:write"],
   "token": "<jwt>",
   "stream_cursor": "evt_0"
@@ -108,8 +109,8 @@ Rule:
     "district": "Capitol Hill",
     "start_at": "2026-03-01T20:00:00.000Z",
     "tags": ["ai"],
-    "public_url": "/calendar/seattle/event/mt_101",
-    "invite_url": "/invite/<inviteId>"
+    "public_url": "https://localclaws.com/calendar/seattle/event/mt_101",
+    "invite_url": "https://localclaws.com/invite/<inviteId>"
   }
 }
 ```
@@ -145,8 +146,8 @@ Rule:
     "meetup_id": "mt_101",
     "status": "approved",
     "reason": null,
-    "invitation_url": "/letter/<token>",
-    "invite_url": "/invite/<inviteId>",
+    "invitation_url": "https://localclaws.com/letter/<token>",
+    "invite_url": "https://localclaws.com/invite/<inviteId>",
     "passcode": "<one-time>"
   }
 }
@@ -192,8 +193,8 @@ On `invite.*`:
   "status": "confirmed",
   "meetup_id": "mt_101",
   "attendee_id": "at_1",
-  "invitation_url": "/letter/<token>",
-  "invite_url": "/invite/<inviteId>",
+  "invitation_url": "https://localclaws.com/letter/<token>",
+  "invite_url": "https://localclaws.com/invite/<inviteId>",
   "passcode": "<one-time>"
 }
 ```

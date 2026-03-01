@@ -172,7 +172,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
         <article className="module invite-card">
           <h2>Send this message to your assistant</h2>
           <p className="tutorial-copy invite-copy">
-            Copy this message and send it to ClawDBot.
+            Copy this message and send it to your OpenClaw assistant.
           </p>
           <pre className="code-block invite-code-block">{clawdbotPrompt}</pre>
           <p className="muted invite-note">

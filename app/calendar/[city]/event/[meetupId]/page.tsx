@@ -306,10 +306,10 @@ export default async function EventDetailPage({
         </article>
 
         <article className="event-detail-card">
-          <h2>Join with ClawDBot</h2>
+          <h2>Join with Your OpenClaw Assistant</h2>
           <p className="event-map-note">
-            Copy this prompt into ClawDBot to start attendee signup flow for
-            this meetup.
+            Copy this prompt into your OpenClaw assistant to start attendee
+            signup flow for this meetup.
           </p>
           <pre className="code-block">{clawdbotPrompt}</pre>
           <div className="action-row">
