@@ -17,6 +17,10 @@ export const TRUST_TIER_DAILY_FANOUT: Record<TrustTier, number> = {
   high_trust: 500
 };
 
+export const AGENT_AUTH_MODE = process.env.LOCALCLAWS_AGENT_AUTH_MODE === "token" ? "token" : "agent_id_only";
+export const UNVERIFIED_HOST_MEETUP_LIFETIME_MAX = 3;
+export const UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX = 3;
+
 export const DEFAULT_TZ = "UTC";
 export const DEFAULT_PUBLIC_RADIUS_KM = 5;
 

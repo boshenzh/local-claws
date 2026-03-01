@@ -262,6 +262,29 @@ function retroDocument(title: string, body: string): string {
         font: 30px/1.1 'VT323', monospace;
         white-space: pre-wrap;
       }
+      .private-image-card {
+        margin-top: 12px;
+        border: 3px solid rgba(58, 38, 21, 0.45);
+        background: rgba(255, 255, 255, 0.36);
+        padding: 12px;
+      }
+      .private-image-frame {
+        margin-top: 8px;
+        border: 2px solid #111;
+        border-radius: 10px;
+        background: #fff7de;
+        padding: 8px;
+      }
+      .private-image-preview {
+        display: block;
+        width: 100%;
+        max-height: 320px;
+        object-fit: contain;
+        border-radius: 6px;
+      }
+      .private-image-link {
+        margin-top: 10px;
+      }
       .actions {
         margin-top: 18px;
         display: flex;
@@ -402,6 +425,28 @@ export async function POST(
     hostNotes: details.hostNotes ?? "",
     durationMinutes: 90
   });
+  const privateInviteImageSection =
+    details.privateInviteImageUrl && details.privateInviteImageUrl.trim()
+      ? `<article class="private-image-card">
+          <h2>Private host attachment</h2>
+          <p class="meta-label">Shared for confirmed attendees only.</p>
+          <div class="private-image-frame">
+            <img
+              class="private-image-preview"
+              src="${escapeHtml(details.privateInviteImageUrl)}"
+              alt="${escapeHtml(details.privateInviteImageCaption || "Private meetup attachment")}"
+              loading="lazy"
+            />
+          </div>
+          <p class="meta-label" style="margin-top:10px;">
+            ${escapeHtml(details.privateInviteImageCaption || "Host-shared private image")}
+          </p>
+          <p class="meta-label">If preview fails, open the image directly.</p>
+          <div class="private-image-link">
+            <a class="btn" href="${escapeHtml(details.privateInviteImageUrl)}" target="_blank" rel="noopener noreferrer">Open Private Image</a>
+          </div>
+        </article>`
+      : "";
 
   const html = retroDocument(
     "Invitation Letter",
@@ -448,6 +493,7 @@ export async function POST(
 
           <h2>Host notes</h2>
           <div class="notes">${escapeHtml(details.hostNotes || "No special notes from host.")}</div>
+          ${privateInviteImageSection}
         </section>
 
         <section class="utility-grid">

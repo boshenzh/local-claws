@@ -73,6 +73,8 @@ export type Meetup = {
   privateLocationLon?: number | null;
   privateLocationParseStatus?: PrivateLocationParseStatus;
   privateLocationNote?: string;
+  privateInviteImageUrl?: string;
+  privateInviteImageCaption?: string;
   hostNotes: string;
   secretCode?: string;
   status: "open" | "closed" | "canceled" | "quarantined";

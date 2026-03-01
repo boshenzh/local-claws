@@ -1,8 +1,13 @@
 import { authorizeRequest } from "@/lib/auth";
-import { DEFAULT_PUBLIC_RADIUS_KM } from "@/lib/constants";
+import { DEFAULT_PUBLIC_RADIUS_KM, UNVERIFIED_HOST_MEETUP_LIFETIME_MAX } from "@/lib/constants";
 import { listInviteCandidates } from "@/lib/fanout";
 import { generateFunPasscode } from "@/lib/invitations";
+import { hasReachedUnverifiedHostMeetupLimit } from "@/lib/limits";
 import { parsePrivateLocationLink } from "@/lib/location-links";
+import {
+  validatePrivateInviteImageCaption,
+  validatePrivateInviteImageUrl,
+} from "@/lib/private-invite-image";
 import { createMeetup, db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonCreated, jsonError, jsonOk } from "@/lib/http";
 
@@ -28,6 +33,10 @@ function isNearDuplicateCampaign(input: {
 
 function meetupPublicUrl(city: string, meetupId: string): string {
   return `/calendar/${encodeURIComponent(city)}/event/${encodeURIComponent(meetupId)}`;
+}
+
+function hasOwn(input: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(input, key);
 }
 
 export async function GET(request: Request) {
@@ -72,21 +81,66 @@ export async function POST(request: Request) {
   if (!auth.ok) {
     return jsonError(auth.error, auth.status);
   }
+  if (hasReachedUnverifiedHostMeetupLimit(auth.agent)) {
+    return jsonError(
+      `Unverified host limit reached. This agent can host up to ${UNVERIFIED_HOST_MEETUP_LIFETIME_MAX} meetups for now.`,
+      403
+    );
+  }
+  if (!body || typeof body !== "object") {
+    return jsonError("Invalid JSON body", 400);
+  }
 
-  const name = typeof body?.name === "string" ? body.name.trim() : "";
-  const city = typeof body?.city === "string" ? body.city.trim().toLowerCase() : "";
-  const district = typeof body?.district === "string" ? body.district.trim() : "";
-  const startAt = typeof body?.start_at === "string" ? body.start_at : "";
-  const publicRadiusKmRaw = typeof body?.public_radius_km === "number" ? body.public_radius_km : DEFAULT_PUBLIC_RADIUS_KM;
+  const payload = body as Record<string, unknown>;
+
+  const name = typeof payload.name === "string" ? payload.name.trim() : "";
+  const city = typeof payload.city === "string" ? payload.city.trim().toLowerCase() : "";
+  const district = typeof payload.district === "string" ? payload.district.trim() : "";
+  const startAt = typeof payload.start_at === "string" ? payload.start_at : "";
+  const publicRadiusKmRaw = typeof payload.public_radius_km === "number" ? payload.public_radius_km : DEFAULT_PUBLIC_RADIUS_KM;
   const publicRadiusKm = Math.round(publicRadiusKmRaw);
-  const maxParticipants = typeof body?.max_participants === "number" ? body.max_participants : 6;
-  const privateLocationLink = typeof body?.private_location_link === "string" ? body.private_location_link.trim() : "";
-  const privateLocationNote = typeof body?.private_location_note === "string" ? body.private_location_note.trim() : "";
-  const privateLocation = typeof body?.private_location === "string" ? body.private_location.trim() : "";
-  const hostNotes = typeof body?.host_notes === "string" ? body.host_notes.trim() : "";
-  const requestedSecretCode = typeof body?.secret_code === "string" ? body.secret_code.trim() : "";
+  const maxParticipants = typeof payload.max_participants === "number" ? payload.max_participants : 6;
+  const privateLocationLink = typeof payload.private_location_link === "string" ? payload.private_location_link.trim() : "";
+  const privateLocationNote = typeof payload.private_location_note === "string" ? payload.private_location_note.trim() : "";
+  const privateLocation = typeof payload.private_location === "string" ? payload.private_location.trim() : "";
+  const hostNotes = typeof payload.host_notes === "string" ? payload.host_notes.trim() : "";
+  const requestedSecretCode = typeof payload.secret_code === "string" ? payload.secret_code.trim() : "";
   const secretCode = requestedSecretCode || generateFunPasscode();
-  const tags = Array.isArray(body?.tags) ? body.tags.filter((tag: unknown): tag is string => typeof tag === "string") : [];
+  const tags = Array.isArray(payload.tags) ? payload.tags.filter((tag: unknown): tag is string => typeof tag === "string") : [];
+
+  if (
+    hasOwn(payload, "private_invite_image_url") &&
+    typeof payload.private_invite_image_url !== "string"
+  ) {
+    return jsonError("private_invite_image_url must be a string", 400);
+  }
+  if (
+    hasOwn(payload, "private_invite_image_caption") &&
+    typeof payload.private_invite_image_caption !== "string"
+  ) {
+    return jsonError("private_invite_image_caption must be a string", 400);
+  }
+
+  const privateInviteImageUrlInput =
+    typeof payload.private_invite_image_url === "string" ? payload.private_invite_image_url.trim() : "";
+  const privateInviteImageCaptionInput =
+    typeof payload.private_invite_image_caption === "string" ? payload.private_invite_image_caption.trim() : "";
+  const captionValidation = validatePrivateInviteImageCaption(privateInviteImageCaptionInput);
+  if (!captionValidation.ok) {
+    return jsonError(captionValidation.error, 400);
+  }
+  const privateInviteImageCaption = captionValidation.caption;
+  let privateInviteImageUrl = "";
+  if (privateInviteImageUrlInput || privateInviteImageCaption) {
+    if (!privateInviteImageUrlInput) {
+      return jsonError("private_invite_image_caption requires private_invite_image_url", 400);
+    }
+    const imageValidation = validatePrivateInviteImageUrl(privateInviteImageUrlInput);
+    if (!imageValidation.ok) {
+      return jsonError(imageValidation.error, 400);
+    }
+    privateInviteImageUrl = imageValidation.canonicalUrl;
+  }
 
   if (!name || !city || !district || !startAt) {
     return jsonError("name, city, district, and start_at are required", 400);
@@ -134,6 +188,8 @@ export async function POST(request: Request) {
     privateLocationLon: parsedPrivateLocation.venue.longitude,
     privateLocationParseStatus: parsedPrivateLocation.venue.parseStatus,
     privateLocationNote: normalizedPrivateLocationNote,
+    privateInviteImageUrl,
+    privateInviteImageCaption,
     hostNotes,
     secretCode,
     status: isNearDuplicateCampaign({
@@ -163,6 +219,12 @@ export async function POST(request: Request) {
         label: meetup.privateLocationLabel || null,
         has_coordinates: meetup.privateLocationLat !== null && meetup.privateLocationLon !== null
       },
+      private_invite_image: meetup.privateInviteImageUrl
+        ? {
+            url: meetup.privateInviteImageUrl,
+            caption: meetup.privateInviteImageCaption || null
+          }
+        : null,
       suggested_attendee_count: 0,
       next_actions: {
         review_candidates: `/api/meetups/${meetup.id}/candidates`,
@@ -187,6 +249,12 @@ export async function POST(request: Request) {
       label: meetup.privateLocationLabel || null,
       has_coordinates: meetup.privateLocationLat !== null && meetup.privateLocationLon !== null
     },
+    private_invite_image: meetup.privateInviteImageUrl
+      ? {
+          url: meetup.privateInviteImageUrl,
+          caption: meetup.privateInviteImageCaption || null
+        }
+      : null,
     suggested_attendee_count: candidates.length,
     suggested_attendees: candidates.map((candidate) => ({
       candidate_id: candidate.candidateId,

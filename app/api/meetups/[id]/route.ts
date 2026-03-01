@@ -2,6 +2,10 @@ import { authorizeRequest } from "@/lib/auth";
 import { deliverInviteEventToAgents } from "@/lib/fanout";
 import { jsonError, jsonOk } from "@/lib/http";
 import { parsePrivateLocationLink } from "@/lib/location-links";
+import {
+  validatePrivateInviteImageCaption,
+  validatePrivateInviteImageUrl,
+} from "@/lib/private-invite-image";
 import { db, ensureStoreReady, persistStore } from "@/lib/store";
 
 function hasOwn(input: Record<string, unknown>, key: string): boolean {
@@ -81,13 +85,18 @@ export async function PATCH(
 
   const updates: Record<string, unknown> = {};
   const updatedFields: string[] = [];
+  const pushUpdatedField = (field: string) => {
+    if (!updatedFields.includes(field)) {
+      updatedFields.push(field);
+    }
+  };
 
   if (hasOwn(payload, "name")) {
     if (typeof payload.name !== "string" || !payload.name.trim()) {
       return jsonError("name must be a non-empty string", 400);
     }
     updates.name = payload.name.trim();
-    updatedFields.push("name");
+    pushUpdatedField("name");
   }
 
   if (hasOwn(payload, "city")) {
@@ -95,7 +104,7 @@ export async function PATCH(
       return jsonError("city must be a non-empty string", 400);
     }
     updates.city = payload.city.trim().toLowerCase();
-    updatedFields.push("city");
+    pushUpdatedField("city");
   }
 
   if (hasOwn(payload, "district")) {
@@ -103,7 +112,7 @@ export async function PATCH(
       return jsonError("district must be a non-empty string", 400);
     }
     updates.district = payload.district.trim();
-    updatedFields.push("district");
+    pushUpdatedField("district");
   }
 
   if (hasOwn(payload, "start_at")) {
@@ -115,7 +124,7 @@ export async function PATCH(
       return jsonError("start_at must be an ISO date string", 400);
     }
     updates.startAt = parsed.toISOString();
-    updatedFields.push("start_at");
+    pushUpdatedField("start_at");
   }
 
   if (hasOwn(payload, "tags")) {
@@ -126,7 +135,7 @@ export async function PATCH(
       new Set(payload.tags.map((value) => value.trim()).filter((value) => Boolean(value)))
     );
     updates.tags = tags;
-    updatedFields.push("tags");
+    pushUpdatedField("tags");
   }
 
   if (hasOwn(payload, "max_participants")) {
@@ -145,7 +154,7 @@ export async function PATCH(
       return jsonError(`max_participants cannot be lower than confirmed attendees (${confirmedCount})`, 409);
     }
     updates.maxParticipants = payload.max_participants;
-    updatedFields.push("max_participants");
+    pushUpdatedField("max_participants");
   }
 
   if (hasOwn(payload, "public_radius_km")) {
@@ -157,7 +166,7 @@ export async function PATCH(
       return jsonError("public_radius_km must be between 1 and 30", 400);
     }
     updates.publicRadiusKm = rounded;
-    updatedFields.push("public_radius_km");
+    pushUpdatedField("public_radius_km");
   }
 
   if (hasOwn(payload, "private_location_link")) {
@@ -178,7 +187,7 @@ export async function PATCH(
     updates.privateLocationLat = parsedLocation.venue.latitude;
     updates.privateLocationLon = parsedLocation.venue.longitude;
     updates.privateLocationParseStatus = parsedLocation.venue.parseStatus;
-    updatedFields.push("private_location_link");
+    pushUpdatedField("private_location_link");
   }
 
   if (hasOwn(payload, "private_location_note")) {
@@ -186,7 +195,7 @@ export async function PATCH(
       return jsonError("private_location_note must be a string", 400);
     }
     updates.privateLocationNote = payload.private_location_note.trim();
-    updatedFields.push("private_location_note");
+    pushUpdatedField("private_location_note");
   }
 
   if (hasOwn(payload, "host_notes")) {
@@ -194,7 +203,65 @@ export async function PATCH(
       return jsonError("host_notes must be a string", 400);
     }
     updates.hostNotes = payload.host_notes.trim();
-    updatedFields.push("host_notes");
+    pushUpdatedField("host_notes");
+  }
+
+  const hasPrivateInviteImageUrl = hasOwn(payload, "private_invite_image_url");
+  const hasPrivateInviteImageCaption = hasOwn(payload, "private_invite_image_caption");
+  if (hasPrivateInviteImageUrl || hasPrivateInviteImageCaption) {
+    let nextUrl = (meetup.privateInviteImageUrl ?? "").trim();
+    let nextCaption = (meetup.privateInviteImageCaption ?? "").trim();
+
+    if (hasPrivateInviteImageUrl) {
+      if (payload.private_invite_image_url === null) {
+        nextUrl = "";
+        nextCaption = "";
+      } else if (typeof payload.private_invite_image_url !== "string") {
+        return jsonError("private_invite_image_url must be a string or null", 400);
+      } else {
+        const normalized = payload.private_invite_image_url.trim();
+        if (!normalized) {
+          nextUrl = "";
+          nextCaption = "";
+        } else {
+          const imageValidation = validatePrivateInviteImageUrl(normalized);
+          if (!imageValidation.ok) {
+            return jsonError(imageValidation.error, 400);
+          }
+          nextUrl = imageValidation.canonicalUrl;
+        }
+      }
+      pushUpdatedField("private_invite_image_url");
+      pushUpdatedField("private_invite_image_caption");
+    }
+
+    if (hasPrivateInviteImageCaption) {
+      if (payload.private_invite_image_caption === null) {
+        nextCaption = "";
+      } else if (typeof payload.private_invite_image_caption !== "string") {
+        return jsonError("private_invite_image_caption must be a string or null", 400);
+      } else {
+        const captionValidation = validatePrivateInviteImageCaption(payload.private_invite_image_caption);
+        if (!captionValidation.ok) {
+          return jsonError(captionValidation.error, 400);
+        }
+        nextCaption = captionValidation.caption;
+      }
+      pushUpdatedField("private_invite_image_caption");
+    } else {
+      const captionValidation = validatePrivateInviteImageCaption(nextCaption);
+      if (!captionValidation.ok) {
+        return jsonError(captionValidation.error, 400);
+      }
+      nextCaption = captionValidation.caption;
+    }
+
+    if (!nextUrl && nextCaption) {
+      return jsonError("private_invite_image_caption requires private_invite_image_url", 400);
+    }
+
+    updates.privateInviteImageUrl = nextUrl;
+    updates.privateInviteImageCaption = nextCaption;
   }
 
   if (hasOwn(payload, "secret_code")) {
@@ -206,12 +273,12 @@ export async function PATCH(
       return jsonError("secret_code must be 80 characters or fewer", 400);
     }
     updates.secretCode = secretCode;
-    updatedFields.push("secret_code");
+    pushUpdatedField("secret_code");
   }
 
   if (updatedFields.length === 0) {
     return jsonError(
-      "Provide at least one editable field: name, city, district, start_at, tags, max_participants, public_radius_km, private_location_link, private_location_note, host_notes, secret_code",
+      "Provide at least one editable field: name, city, district, start_at, tags, max_participants, public_radius_km, private_location_link, private_location_note, private_invite_image_url, private_invite_image_caption, host_notes, secret_code",
       400
     );
   }
@@ -234,6 +301,12 @@ export async function PATCH(
       label: meetup.privateLocationLabel || null,
       has_coordinates: meetup.privateLocationLat !== null && meetup.privateLocationLon !== null
     },
+    private_invite_image: meetup.privateInviteImageUrl
+      ? {
+          url: meetup.privateInviteImageUrl,
+          caption: meetup.privateInviteImageCaption || null
+        }
+      : null,
     secret_code: meetup.secretCode || null
   });
 }

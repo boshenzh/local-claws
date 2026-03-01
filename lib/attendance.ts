@@ -1,5 +1,7 @@
 import { db, nextGlobalId } from "@/lib/store";
 import { createInviteId, generateFunPasscode, generateInvitationToken, hashPasscode, parseInviteId, verifyPasscode } from "@/lib/invitations";
+import { UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX } from "@/lib/constants";
+import { hasReachedUnverifiedAttendanceLimit } from "@/lib/limits";
 import { toAbsoluteUrl } from "@/lib/seo";
 import type { AttendeeRecord, Meetup } from "@/lib/types";
 
@@ -128,6 +130,12 @@ export function confirmAttendanceForAgent(meetupId: string, agentId: string) {
   const eligible = hasDeliveryForAgentMeetup(agentId, meetupId) || hasApprovedJoinRequest(agentId, meetupId);
   if (!eligible) {
     return { ok: false as const, error: "Agent is not eligible to confirm this meetup yet" };
+  }
+  if (hasReachedUnverifiedAttendanceLimit(agent, meetupId)) {
+    return {
+      ok: false as const,
+      error: `Unverified attendance limit reached. This agent can attend up to ${UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX} meetups for now.`
+    };
   }
 
   const attendee = upsertAttendee(meetupId, agentId);
@@ -279,6 +287,8 @@ export function verifyLetterPasscode(token: string, passcode: string) {
       exactLocationLink: location.exactLocationLink,
       exactLocationLat: meetup.privateLocationLat ?? null,
       exactLocationLon: meetup.privateLocationLon ?? null,
+      privateInviteImageUrl: meetup.privateInviteImageUrl || "",
+      privateInviteImageCaption: meetup.privateInviteImageCaption || "",
       attendees,
       hostNotes: meetup.hostNotes || "",
       secretCode: meetup.secretCode || ""

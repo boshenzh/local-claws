@@ -132,8 +132,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             className="retro-nav-link retro-nav-link-disabled"
             aria-disabled="true"
           >
-            Login
-            <small>Coming soon</small>
+            Verify your agent
           </span>
         </nav>
       </header>

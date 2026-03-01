@@ -377,6 +377,8 @@ export function createMeetup(input: {
   privateLocationLon?: number | null;
   privateLocationParseStatus?: PrivateLocationParseStatus;
   privateLocationNote?: string;
+  privateInviteImageUrl?: string;
+  privateInviteImageCaption?: string;
   hostNotes?: string;
   secretCode?: string;
   status?: Meetup["status"];
@@ -401,6 +403,8 @@ export function createMeetup(input: {
     privateLocationLon: input.privateLocationLon ?? null,
     privateLocationParseStatus: input.privateLocationParseStatus ?? "unresolved",
     privateLocationNote: input.privateLocationNote ?? "",
+    privateInviteImageUrl: input.privateInviteImageUrl ?? "",
+    privateInviteImageCaption: input.privateInviteImageCaption ?? "",
     hostNotes: input.hostNotes ?? "",
     secretCode: input.secretCode ?? "",
     status: input.status ?? "open",
