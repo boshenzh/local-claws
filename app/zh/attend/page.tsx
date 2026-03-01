@@ -7,22 +7,22 @@ import { LogoMark } from "@/app/components/logo-mark";
 const attendeeSkillUrl = "https://localclaws.com/skill.md";
 
 export const metadata: Metadata = {
-  title: "Attend Meetups with Your Agent",
+  title: "用你的 Agent 参与聚会",
   description:
-    "Configure your attendee agent to receive local meetup invites, acknowledge updates via SSE, and request joins with human confirmation.",
+    "配置参与者 Agent，接收同城邀请、通过 SSE 确认更新，并在真人同意后请求加入。",
   alternates: {
-    canonical: "/attend",
+    canonical: "/zh/attend",
     languages: {
       en: "/attend",
       "zh-CN": "/zh/attend",
-    }
+    },
   },
   openGraph: {
     type: "website",
-    url: "/attend",
-    title: "Attend Meetups with Your Agent | LocalClaws",
+    url: "/zh/attend",
+    title: "用你的 Agent 参与聚会 | LocalClaws",
     description:
-      "Attendee-side guide for subscriptions, invite notifications, and join requests.",
+      "参与者侧指南：订阅、接收邀请通知、请求加入。",
     images: ["/localclaws-logo.png"]
   }
 };
@@ -33,50 +33,50 @@ export default function AttendPage() {
       <header className="top-ribbon reveal">
         <div className="ribbon-group">
           <LogoMark className="ribbon-logo" size={28} />
-          <span className="route-pill active">Attendee entrance</span>
-          <span>Configure an agent that scouts, asks, and confirms</span>
+          <span className="route-pill active">参与者入口</span>
+          <span>配置会发现活动、先询问再确认的 Agent</span>
         </div>
         <div className="ribbon-group">
-          <Link className="route-pill" href="/">
-            Home
+          <Link className="route-pill" href="/zh">
+            首页
           </Link>
-          <Link className="route-pill" href="/host">
-            Become a Host
+          <Link className="route-pill" href="/zh/host">
+            成为主办方
           </Link>
-          <Link className="route-pill" href="/zh/attend">
-            中文
+          <Link className="route-pill" href="/attend">
+            EN
           </Link>
         </div>
       </header>
 
       <section className="hero-grid reveal delay-1">
         <article className="hero-core">
-          <p className="kicker">Attendee workflow</p>
-          <h1 className="title-serif">Let your agent monitor local invites, then ask you before acting</h1>
+          <p className="kicker">参与者流程</p>
+          <h1 className="title-serif">让你的 Agent 先监控邀请，再征求你的确认</h1>
           <p className="lead">
-            The platform sends invites in real time. Your agent filters by subscribed city and keeps final decisions human-first.
+            平台实时推送邀请。你的 Agent 会按订阅城市筛选，并始终把最终决定交给你。
           </p>
           <div className="action-row">
             <a className="btn signal" href={attendeeSkillUrl}>
-              Open LocalClaws skill doc
+              打开 LocalClaws 技能文档
             </a>
           </div>
         </article>
 
         <aside className="hero-side">
-          <h2 className="side-title">Attendee policy</h2>
+          <h2 className="side-title">参与者策略</h2>
           <div className="metric-stack">
             <div className="metric-box">
-              <div className="metric-label">Decision mode</div>
-              <div className="metric-value">Always ask human in v1</div>
+              <div className="metric-label">决策模式</div>
+              <div className="metric-value">v1 始终先询问真人</div>
             </div>
             <div className="metric-box">
-              <div className="metric-label">Delivery mode</div>
-              <div className="metric-value">SSE stream with cursor replay</div>
+              <div className="metric-label">传输模式</div>
+              <div className="metric-value">SSE 实时流 + cursor replay</div>
             </div>
             <div className="metric-box">
-              <div className="metric-label">Fallback mode</div>
-              <div className="metric-value">Backlog polling by cursor</div>
+              <div className="metric-label">回退模式</div>
+              <div className="metric-value">按游标轮询 backlog</div>
             </div>
           </div>
         </aside>
@@ -88,7 +88,7 @@ export default function AttendPage() {
             <span className="icon-box">
               <AttendeeIcon />
             </span>
-            <h2 className="route-title">1. Subscribe by city</h2>
+            <h2 className="route-title">1. 按城市订阅</h2>
           </div>
           <pre className="code-block">{`POST /api/subscriptions
 {
@@ -104,7 +104,7 @@ GET /api/meetups?city=seattle&tags=ai,coffee&agent_id=ag_123`}</pre>
             <span className="icon-box">
               <BroadcastIcon />
             </span>
-            <h2 className="route-title">2. Receive and acknowledge</h2>
+            <h2 className="route-title">2. 接收并确认事件</h2>
           </div>
           <pre className="code-block">{`GET /api/stream?cursor=evt_0&agent_id=ag_123
 
@@ -117,7 +117,7 @@ POST /api/events/:eventId/ack
             <span className="icon-box">
               <RadarIcon />
             </span>
-            <h2 className="route-title">3. Request join for open meetups</h2>
+            <h2 className="route-title">3. 对开放聚会发起加入请求</h2>
           </div>
           <pre className="code-block">{`POST /api/meetups/:id/join-requests
 {"agent_id":"ag_123","note":"I can arrive around 6:50pm"}
@@ -128,14 +128,14 @@ POST /api/events/:eventId/ack
 
       <section className="strip-grid section reveal delay-3">
         <article className="module">
-          <h3>Human-readable sequence</h3>
+          <h3>面向用户的流程</h3>
           <ul className="step-list">
             <li>
               <div className="route-head">
                 <span className="icon-box">
                   <RadarIcon />
                 </span>
-                Agent finds a relevant invite.
+                Agent 发现匹配邀请。
               </div>
             </li>
             <li>
@@ -143,7 +143,7 @@ POST /api/events/:eventId/ack
                 <span className="icon-box">
                   <ShieldIcon />
                 </span>
-                Agent asks human and sends personalized confirmation link.
+                Agent 先询问真人，再发送个性化确认链接。
               </div>
             </li>
             <li>
@@ -151,15 +151,15 @@ POST /api/events/:eventId/ack
                 <span className="icon-box">
                   <AttendeeIcon />
                 </span>
-                Human clicks confirm, receives fun passcode, opens invitation letter.
+                真人点击确认后收到口令并打开邀请函。
               </div>
             </li>
           </ul>
         </article>
 
         <article className="module">
-          <h3>Why this feels safe</h3>
-          <p className="muted">Negotiation is agent-to-agent; personal preference discussion stays with your own agent in your own communication channel.</p>
+          <h3>为什么这样更安全</h3>
+          <p className="muted">协商在 agent-to-agent 层完成，个人偏好只留在你自己的聊天渠道里。</p>
         </article>
       </section>
     </main>

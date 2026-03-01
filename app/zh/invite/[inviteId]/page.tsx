@@ -40,9 +40,9 @@ function getRequestOrigin(headerStore: Headers): string {
 }
 
 export const metadata: Metadata = {
-  title: "Invitation",
+  title: "邀请",
   alternates: {
-    canonical: "/invite",
+    canonical: "/zh/invite",
     languages: {
       en: "/invite",
       "zh-CN": "/zh/invite",
@@ -68,125 +68,122 @@ export default async function InvitePage({ params }: InvitePageProps) {
   const city = formatCityDisplay(meetup.city);
   const meetupTimezone = resolveCityTimeZone(meetup.city);
   const requestOrigin = getRequestOrigin(headerStore);
-  const inviteUrl = `${requestOrigin}/invite/${encodeURIComponent(inviteId)}`;
-  const clawdbotPrompt = `Please read ${ATTENDEE_SKILL_URL}. I want to join this LocalClaws meetup: ${inviteUrl}. Help me sign up and guide me through the next steps.`;
+  const inviteUrl = `${requestOrigin}/zh/invite/${encodeURIComponent(inviteId)}`;
+  const clawdbotPrompt = `请阅读 ${ATTENDEE_SKILL_URL}。我想加入这个 LocalClaws 聚会：${inviteUrl}。请帮我完成报名并告诉我下一步。`;
+  const zhLetterUrl = landing.letterUrl
+    ? landing.letterUrl.replace("/letter/", "/zh/letter/")
+    : null;
 
   return (
     <main className="invite-page">
       <header className="site-nav reveal">
         <div className="brand brand-with-logo">
           <LogoMark className="brand-logo" size={30} />
-          <span>localclaws invite</span>
+          <span>localclaws 邀请</span>
         </div>
         <nav className="nav-links">
-          <Link className="nav-link" href="/">
-            Home
+          <Link className="nav-link" href="/zh">
+            首页
           </Link>
-          <Link className="nav-link" href={`/calendar/${meetup.city}`}>
-            City Calendar
+          <Link className="nav-link" href={`/zh/calendar?city=${encodeURIComponent(meetup.city)}&view=cards`}>
+            城市看板
           </Link>
-          <Link className="nav-link" href={`/zh/invite/${encodeURIComponent(inviteId)}`}>
-            中文
+          <Link className="nav-link" href={`/invite/${encodeURIComponent(inviteId)}`}>
+            EN
           </Link>
         </nav>
       </header>
 
       <section className="home-hero invite-hero reveal delay-1">
-        <p className="kicker">You are invited</p>
+        <p className="kicker">你收到邀请</p>
         <h1 className="home-title invite-title">{meetup.name}</h1>
         <p className="home-subtitle invite-subtitle">
           {city} | {meetup.district} |{" "}
           {formatDetailedInTimeZone(meetup.startAt, meetupTimezone)}
         </p>
         <p className="home-subtitle invite-intro">
-          Welcome to LocalClaws. This page shares the public meetup details and
-          helps you take the next step to join.
+          欢迎来到 LocalClaws。本页展示公开聚会信息，并帮你完成下一步加入流程。
         </p>
-        <div className="invite-chip-row" aria-label="Public meetup details">
-          <span className="invite-chip">City: {city}</span>
-          <span className="invite-chip">District: {meetup.district}</span>
-          <span className="invite-chip">Spots: {meetup.maxParticipants}</span>
+        <div className="invite-chip-row" aria-label="公开聚会信息">
+          <span className="invite-chip">城市：{city}</span>
+          <span className="invite-chip">区域：{meetup.district}</span>
+          <span className="invite-chip">名额：{meetup.maxParticipants}</span>
           <span className="invite-chip">
-            Tags: {meetup.tags.join(", ") || "none"}
+            标签：{meetup.tags.join(", ") || "无"}
           </span>
         </div>
       </section>
 
       <section className="invite-grid section reveal delay-2">
         <article className="module invite-card invite-card-primary">
-          <h2>How to join</h2>
+          <h2>如何加入</h2>
           {landing.mode === "targeted" && landing.canConfirm ? (
             <>
               <p className="home-subtitle invite-copy">
-                Great news, this invitation is ready for you.
+                好消息，这个邀请已为你准备完成。
               </p>
               <form
-                action={`/invite/${inviteId}/confirm`}
+                action={`/zh/invite/${inviteId}/confirm`}
                 method="post"
                 className="action-row"
               >
                 <button className="btn signal" type="submit">
-                  Join and open my invitation
+                  立即加入并打开邀请函
                 </button>
               </form>
               <ol className="invite-steps">
-                <li>Click the button above.</li>
+                <li>点击上方按钮。</li>
                 <li>
-                  You will receive your private invitation letter and code
-                  phrase.
+                  你会收到私密邀请函和口令。
                 </li>
-                <li>Open your letter to view exact meetup location details.</li>
+                <li>打开邀请函查看聚会精确地点。</li>
               </ol>
             </>
           ) : landing.mode === "targeted" &&
             landing.isConfirmed &&
-            landing.letterUrl ? (
+            zhLetterUrl ? (
             <>
               <p className="home-subtitle invite-copy">
-                You are on the guest list. Open your invitation letter whenever
-                you are ready.
+                你已在来宾名单中。可随时打开邀请函。
               </p>
               <div className="action-row">
-                <a className="btn signal" href={landing.letterUrl}>
-                  Open my invitation letter
+                <a className="btn signal" href={zhLetterUrl}>
+                  打开我的邀请函
                 </a>
               </div>
               <p className="home-subtitle invite-copy">
-                Your letter includes private location details and meetup notes.
+                邀请函内含私密地点信息和主办方备注。
               </p>
             </>
           ) : landing.mode === "targeted" ? (
             <>
               <p className="home-subtitle invite-copy">
-                Your invite is being prepared. Please check back shortly and use
-                this same page again.
+                你的邀请正在准备中。请稍后回到此页面再试。
               </p>
               <p className="home-subtitle invite-copy">
-                If needed, ask your assistant to check your join status.
+                如有需要，请让助手帮你检查加入状态。
               </p>
             </>
           ) : (
             <>
               <p className="home-subtitle invite-copy">
-                To request a spot, send the message on the right to your
-                assistant.
+                若要申请名额，请将右侧消息发送给你的助手。
               </p>
               <p className="home-subtitle invite-copy">
-                Once approved, you will receive your private invitation letter
-                with exact location access.
+                通过后你会收到可查看精确地点的私密邀请函。
               </p>
             </>
           )}
         </article>
 
         <article className="module invite-card">
-          <h2>Send this message to your assistant</h2>
+          <h2>把这段消息发给你的助手</h2>
           <p className="tutorial-copy invite-copy">
-            Copy this message and send it to your OpenClaw assistant.
+            复制下面内容并发送给 OpenClaw 助手。
           </p>
           <pre className="code-block invite-code-block">{clawdbotPrompt}</pre>
           <p className="muted invite-note">
-            Your assistant will guide you step by step.
+            你的助手会一步步引导你完成流程。
           </p>
         </article>
       </section>

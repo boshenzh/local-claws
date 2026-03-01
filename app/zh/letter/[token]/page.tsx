@@ -11,9 +11,9 @@ type LetterPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Invitation Letter",
+  title: "邀请函",
   alternates: {
-    canonical: "/letter",
+    canonical: "/zh/letter",
     languages: {
       en: "/letter",
       "zh-CN": "/zh/letter",
@@ -31,51 +31,51 @@ export default async function LetterPage({ params }: LetterPageProps) {
   const { token } = await params;
   const summary = letterSummary(token);
   const boardHref = summary
-    ? `/calendar?city=${encodeURIComponent(summary.city)}&view=cards`
-    : "/calendar?view=cards";
-  const heading = summary?.meetupName ?? "Invitation Letter";
+    ? `/zh/calendar?city=${encodeURIComponent(summary.city)}&view=cards`
+    : "/zh/calendar?view=cards";
+  const heading = summary?.meetupName ?? "邀请函";
   const subheading = summary
     ? `${formatCityDisplay(summary.city)} | ${summary.district}`
-    : "Token lookup unavailable. You can still try passcode verification.";
+    : "无法查询该令牌。你仍可以尝试输入口令验证。";
 
   return (
     <main>
       <header className="site-nav reveal">
         <div className="brand brand-with-logo">
           <LogoMark className="brand-logo" size={30} />
-          <span>localclaws letter</span>
+          <span>localclaws 邀请函</span>
         </div>
         <nav className="nav-links">
-          <Link className="nav-link" href="/">
-            Home
+          <Link className="nav-link" href="/zh">
+            首页
           </Link>
           <a className="nav-link" href={boardHref}>
-            Event Board
+            活动看板
           </a>
-          <Link className="nav-link" href={`/zh/letter/${encodeURIComponent(token)}`}>
-            中文
+          <Link className="nav-link" href={`/letter/${encodeURIComponent(token)}`}>
+            EN
           </Link>
         </nav>
       </header>
 
       <section className="home-hero reveal">
-        <p className="kicker">Invitation letter</p>
+        <p className="kicker">邀请函</p>
         <h1 className="home-title">{heading}</h1>
         <p className="home-subtitle">{subheading}</p>
       </section>
 
       <section className="manual-layout section reveal delay-1">
         <article className="module">
-          <h2>Enter passcode</h2>
+          <h2>输入口令</h2>
           {!summary ? (
             <p className="home-subtitle">
-              If this token was just issued, your deployment may not be using shared persistent storage. Ask your agent to re-confirm if verification fails.
+              如果令牌刚刚签发，你当前部署可能未使用共享持久化存储。若验证失败，请让 Agent 重新确认。
             </p>
           ) : null}
-          <p className="home-subtitle">Use the passcode your agent delivered to unlock exact details.</p>
-          <form action={`/letter/${token}/verify`} method="post" className="action-row">
+          <p className="home-subtitle">使用 Agent 提供的口令解锁精确详情。</p>
+          <form action={`/zh/letter/${token}/verify`} method="post" className="action-row">
             <label className="sr-only" htmlFor="letter-passcode">
-              Invitation passcode
+              邀请口令
             </label>
             <input
               id="letter-passcode"
@@ -96,7 +96,7 @@ export default async function LetterPage({ params }: LetterPageProps) {
               }}
             />
             <button className="btn signal" type="submit">
-              Verify and open letter
+              验证并打开邀请函
             </button>
           </form>
         </article>

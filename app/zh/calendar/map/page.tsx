@@ -30,7 +30,7 @@ function boardHref(input: {
   if (input.tags) {
     params.set("tags", input.tags);
   }
-  return `/calendar?${params.toString()}`;
+  return `/zh/calendar?${params.toString()}`;
 }
 
 function mapHref(input: { from: string; to: string; tags: string }): string {
@@ -40,7 +40,7 @@ function mapHref(input: { from: string; to: string; tags: string }): string {
   if (input.tags) {
     params.set("tags", input.tags);
   }
-  return `/calendar/map?${params.toString()}`;
+  return `/zh/calendar/map?${params.toString()}`;
 }
 
 export async function generateMetadata({
@@ -57,32 +57,32 @@ export async function generateMetadata({
   });
 
   return {
-    title: "World Meetup Map",
+    title: "全球聚会地图",
     description:
-      "Global map view of open LocalClaws meetups. District-level public context only.",
+      "查看 LocalClaws 已开放聚会的全球地图。仅展示区级公开上下文。",
     alternates: {
       canonical,
       languages: {
-        en: canonical,
-        "zh-CN": canonical.replace("/calendar", "/zh/calendar"),
+        en: canonical.replace("/zh", ""),
+        "zh-CN": canonical,
       },
     },
     openGraph: {
       type: "website",
       url: canonical,
-      title: "World Meetup Map | LocalClaws",
+      title: "全球聚会地图 | LocalClaws",
       description:
-        "Browse open meetups worldwide on a map with privacy-safe district context and event list sync.",
+        "在全球地图上浏览公开聚会，保持隐私安全的区级信息展示。",
       images: ["/localclaws-logo.png"],
     },
     twitter: {
       card: "summary_large_image",
-      title: "World Meetup Map | LocalClaws",
-      description: "Map and list view of public meetup context worldwide.",
+      title: "全球聚会地图 | LocalClaws",
+      description: "全球公开聚会的地图 + 列表视图。",
       images: ["/localclaws-logo.png"],
     },
     other: {
-      "geo.placename": "World meetup map",
+      "geo.placename": "全球聚会地图",
     },
   };
 }
@@ -122,19 +122,15 @@ export default async function EventMapPage({ searchParams }: MapPageProps) {
   detailQuery.set("back", "map");
   if (tagsText) detailQuery.set("tags", tagsText);
   const detailQueryText = detailQuery.toString();
-  const zhMapHref = `/zh/calendar/map?${new URLSearchParams({
-    from: mapData.from,
-    to: mapData.to,
-    ...(tagsText ? { tags: tagsText } : {}),
-  }).toString()}`;
 
   const siteUrl = getSiteUrl();
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "World Meetup Map",
+    name: "全球聚会地图",
+    inLanguage: "zh-CN",
     url: `${siteUrl}${activeMapHref}`,
-    description: "Global map-first public meetup listings for LocalClaws.",
+    description: "LocalClaws 全球地图优先的公开聚会列表。",
     about: {
       "@type": "Place",
       name: "World",
@@ -151,39 +147,39 @@ export default async function EventMapPage({ searchParams }: MapPageProps) {
         <div className="retro-brand-wrap">
           <LogoMark className="retro-brand-logo" size={42} />
           <div>
-            <div className="retro-brand">event map</div>
-            <div className="retro-brand-sub">OpenStreetMap world board</div>
+            <div className="retro-brand">活动地图</div>
+            <div className="retro-brand-sub">OpenStreetMap 全球看板</div>
           </div>
         </div>
 
         <nav className="retro-nav-links" aria-label="Event map navigation">
-          <Link className="retro-nav-link" href="/">
-            Home
+          <Link className="retro-nav-link" href="/zh">
+            首页
           </Link>
-          <Link className="retro-nav-link" href="/host">
-            Become a Host
+          <Link className="retro-nav-link" href="/zh/host">
+            成为主办方
           </Link>
-          <Link className="retro-nav-link" href={zhMapHref as Route}>
-            中文
+          <Link className="retro-nav-link" href={`/calendar/map?${new URLSearchParams({ from: mapData.from, to: mapData.to, ...(tagsText ? { tags: tagsText } : {}) }).toString()}` as Route}>
+            EN
           </Link>
         </nav>
       </header>
 
       <section className="retro-hero reveal delay-1">
-        <p className="retro-eyebrow">Public meetup map</p>
-        <h1 className="retro-title">World map + list board</h1>
+        <p className="retro-eyebrow">公开聚会地图</p>
+        <h1 className="retro-title">全球地图 + 列表看板</h1>
         <p className="retro-lead">
-          Click markers to jump to meetup cards worldwide. Exact venues stay private until invitation letter verification.
+          点击标记即可跳转到聚会卡片。精确地点会在邀请函验证后才可见。
         </p>
       </section>
 
       <section className="board-toolbar section reveal delay-2">
-        <form className="board-picker" method="get" action="/calendar/map">
-          <label htmlFor="map-from">From</label>
+        <form className="board-picker" method="get" action="/zh/calendar/map">
+          <label htmlFor="map-from">开始</label>
           <input id="map-from" name="from" type="date" defaultValue={mapData.from} />
-          <label htmlFor="map-to">To</label>
+          <label htmlFor="map-to">结束</label>
           <input id="map-to" name="to" type="date" defaultValue={mapData.to} />
-          <label htmlFor="map-tags">Tags</label>
+          <label htmlFor="map-tags">标签</label>
           <input
             id="map-tags"
             name="tags"
@@ -191,18 +187,18 @@ export default async function EventMapPage({ searchParams }: MapPageProps) {
             defaultValue={tagsText}
             placeholder="coffee, gaming"
           />
-          <button type="submit">Apply filters</button>
+          <button type="submit">应用筛选</button>
         </form>
 
         <nav className="view-toggle" aria-label="Event board views">
           <Link className="view-pill" href={cardsHref as Route}>
-            Cards
+            卡片
           </Link>
           <Link className="view-pill" href={monthHref as Route}>
-            Month calendar
+            月历
           </Link>
           <Link className="view-pill active" href={activeMapHref as Route} aria-current="page">
-            Map
+            地图
           </Link>
         </nav>
       </section>
@@ -212,8 +208,25 @@ export default async function EventMapPage({ searchParams }: MapPageProps) {
         events={mapData.events.map((event) => ({
           ...event,
           cityLabel: formatCityDisplay(event.city),
-          detailHref: `/calendar/${encodeURIComponent(event.city)}/event/${encodeURIComponent(event.meetupId)}?${detailQueryText}`,
+          detailHref: `/zh/calendar/${encodeURIComponent(event.city)}/event/${encodeURIComponent(event.meetupId)}?${detailQueryText}`,
         }))}
+        labels={{
+          mapTitle: "全球聚会地图",
+          mapSubtitle: "仅显示 OpenStreetMap 公开上下文。精确地点仍保留在邀请函中。",
+          mapAriaLabel: "全球聚会地图",
+          mapUnavailablePrefix: "地图不可用：",
+          mapFallbackNote: "城市兜底标记会按数量聚合显示。",
+          listTitle: "聚会",
+          listSubtitle: "选择卡片或地图标记可同步定位。",
+          emptyTitle: "当前时间窗口内没有开放聚会",
+          emptyHint: "试试扩大日期范围。",
+          parsedMarker: "解析坐标标记",
+          clusterMarker: "城市聚合标记",
+          fallbackMarker: "城市兜底标记",
+          listOnlyMarker: "仅列表",
+          spotsRemainingSuffix: "剩余名额",
+          viewDetails: "查看详情",
+        }}
       />
     </main>
   );

@@ -44,7 +44,7 @@ export async function generateMetadata({
 
   const city = resolveCityFromQuery(query.city, cities[0] ?? "seattle");
   const cityLabel = formatCityDisplay(city);
-  const canonical = `/calendar?city=${encodeURIComponent(city)}&view=cards`;
+  const canonical = `/zh/calendar?city=${encodeURIComponent(city)}&view=cards`;
   const coordinates = getCityCoordinates(city);
   const geoMeta: Record<string, string | number | Array<string | number>> = {
     "geo.region": cityLabel,
@@ -55,26 +55,26 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${cityLabel} Meetup Board`,
-    description: `Browse open meetups in ${cityLabel} by time, district, and interest tags.`,
+    title: `${cityLabel} 聚会看板`,
+    description: `按时间、区域与兴趣标签浏览 ${cityLabel} 的开放聚会。`,
     alternates: {
       canonical,
       languages: {
-        en: canonical,
-        "zh-CN": canonical.replace("/calendar", "/zh/calendar"),
+        en: canonical.replace("/zh", ""),
+        "zh-CN": canonical,
       },
     },
     openGraph: {
       type: "website",
       url: canonical,
-      title: `${cityLabel} Meetup Board | LocalClaws`,
-      description: `Open meetup listings for ${cityLabel}, with private venue details revealed only after invitation verification.`,
+      title: `${cityLabel} 聚会看板 | LocalClaws`,
+      description: `${cityLabel} 的开放聚会列表，私密地点仅在邀请函验证后显示。`,
       images: ["/localclaws-logo.png"],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${cityLabel} Meetup Board | LocalClaws`,
-      description: `Discover local events in ${cityLabel} by district, time, and tags.`,
+      title: `${cityLabel} 聚会看板 | LocalClaws`,
+      description: `按区域、时间与标签发现 ${cityLabel} 的本地活动。`,
       images: ["/localclaws-logo.png"],
     },
     other: geoMeta,
@@ -88,7 +88,7 @@ type DayCell = {
   inMonth: boolean;
 };
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 function toDateOnly(value: string): string {
   return value.slice(0, 10);
@@ -129,7 +129,7 @@ function monthTitle(anchorDate: string): string {
   const y = Number.isFinite(rawY) ? rawY : now.getUTCFullYear();
   const m = Number.isFinite(rawM) ? rawM : now.getUTCMonth() + 1;
   const date = new Date(Date.UTC(y, m - 1, 1));
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("zh-CN", {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
@@ -153,7 +153,7 @@ function boardHref(input: {
   if (input.tags) {
     params.set("tags", input.tags);
   }
-  return `/calendar?${params.toString()}`;
+  return `/zh/calendar?${params.toString()}`;
 }
 
 function dedupeCitySlugs(input: string[]): string[] {
@@ -237,15 +237,7 @@ export default async function EventBoardPage({
   if (tagsText) {
     mapParams.set("tags", tagsText);
   }
-  const mapHref = `/calendar/map?${mapParams.toString()}`;
-  const zhParams = new URLSearchParams();
-  zhParams.set("city", calendar.city);
-  zhParams.set("view", view);
-  zhParams.set("from", calendar.from);
-  zhParams.set("to", calendar.to);
-  zhParams.set("tz", calendar.timezone);
-  if (tagsText) zhParams.set("tags", tagsText);
-  const zhHref = `/zh/calendar?${zhParams.toString()}`;
+  const mapHref = `/zh/calendar/map?${mapParams.toString()}`;
 
   const eventsByDate = new Map<string, typeof calendar.events>();
   for (const event of calendar.events) {
@@ -268,15 +260,15 @@ export default async function EventBoardPage({
   }
   const detailQueryText = detailQuery.toString();
   const siteUrl = getSiteUrl();
-  const canonicalUrl = `${siteUrl}/calendar?city=${encodeURIComponent(calendar.city)}&view=cards`;
+  const canonicalUrl = `${siteUrl}/zh/calendar?city=${encodeURIComponent(calendar.city)}&view=cards`;
   const cityLabel = formatCityDisplay(calendar.city);
   const cityCoordinates = getCityCoordinates(calendar.city);
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${cityLabel} Meetup Board`,
+    name: `${cityLabel} 聚会看板`,
     url: canonicalUrl,
-    description: `Public meetup listings for ${cityLabel}.`,
+    description: `${cityLabel} 的公开聚会列表。`,
     about: {
       "@type": "Place",
       name: cityLabel,
@@ -294,15 +286,23 @@ export default async function EventBoardPage({
   const listSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${cityLabel} meetup listings`,
+    name: `${cityLabel} 聚会列表`,
     numberOfItems: calendar.events.length,
     itemListElement: calendar.events.slice(0, 50).map((event, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: event.name,
-      url: `${siteUrl}/calendar/${calendar.city}/event/${event.meetup_id}`,
+      url: `${siteUrl}/zh/calendar/${calendar.city}/event/${event.meetup_id}`,
     })),
   };
+  const enParams = new URLSearchParams();
+  enParams.set("city", calendar.city);
+  enParams.set("view", view);
+  enParams.set("from", calendar.from);
+  enParams.set("to", calendar.to);
+  enParams.set("tz", calendar.timezone);
+  if (tagsText) enParams.set("tags", tagsText);
+  const enHref = `/calendar?${enParams.toString()}`;
 
   return (
     <main className="retro-home board-page">
@@ -318,42 +318,41 @@ export default async function EventBoardPage({
         <div className="retro-brand-wrap">
           <LogoMark className="retro-brand-logo" size={42} />
           <div>
-            <div className="retro-brand">event board</div>
-            <div className="retro-brand-sub">Agent first, calendar second</div>
+            <div className="retro-brand">活动看板</div>
+            <div className="retro-brand-sub">Agent 优先，日历其次</div>
           </div>
         </div>
 
         <nav className="retro-nav-links" aria-label="Event board navigation">
-          <Link className="retro-nav-link" href="/">
-            Home
+          <Link className="retro-nav-link" href="/zh">
+            首页
           </Link>
-          <Link className="retro-nav-link" href="/host">
-            Become a Host
+          <Link className="retro-nav-link" href="/zh/host">
+            成为主办方
           </Link>
-          <Link className="retro-nav-link" href={zhHref as Route}>
-            中文
+          <Link className="retro-nav-link" href={enHref as Route}>
+            EN
           </Link>
         </nav>
       </header>
 
       <section className="retro-hero reveal delay-1">
-        <p className="retro-eyebrow">Public meetup board</p>
-        <h1 className="retro-title">Browse by city, then dive into details</h1>
+        <p className="retro-eyebrow">公开聚会看板</p>
+        <h1 className="retro-title">先按城市浏览，再进入详情</h1>
         <p className="retro-lead">
-          Start with event cards for fast scanning. Switch to month view when
-          you want calendar context.
+          先用活动卡片快速扫描；需要日程视角时切换到月历。
         </p>
       </section>
 
       <section className="board-toolbar section reveal delay-2">
         <form className="board-picker" method="get">
-          <label htmlFor="board-city">City</label>
+          <label htmlFor="board-city">城市</label>
           <CityAutocomplete
             id="board-city"
             name="city"
             defaultValue={formatCityDisplay(calendar.city)}
             suggestions={citySuggestions}
-            placeholder="Search major city"
+            placeholder="搜索主要城市"
           />
           <input type="hidden" name="view" value={view} />
           <input type="hidden" name="from" value={calendar.from} />
@@ -362,7 +361,7 @@ export default async function EventBoardPage({
           {tagsText ? (
             <input type="hidden" name="tags" value={tagsText} />
           ) : null}
-          <button type="submit">Switch city</button>
+          <button type="submit">切换城市</button>
         </form>
 
         <nav className="view-toggle" aria-label="Event board views">
@@ -371,17 +370,17 @@ export default async function EventBoardPage({
             href={cardsHref as Route}
             aria-current={view === "cards" ? "page" : undefined}
           >
-            Cards
+            卡片
           </Link>
           <Link
             className={`view-pill${view === "month" ? " active" : ""}`}
             href={monthHref as Route}
             aria-current={view === "month" ? "page" : undefined}
           >
-            Month calendar
+            月历
           </Link>
           <Link className="view-pill" href={mapHref as Route}>
-            Map
+            地图
           </Link>
         </nav>
       </section>
@@ -392,20 +391,19 @@ export default async function EventBoardPage({
             {calendar.events.length === 0 ? (
               <article className="event-card event-card-empty">
                 <h2>
-                  No open meetups in {formatCityDisplay(calendar.city)} yet
+                  {formatCityDisplay(calendar.city)} 暂无开放聚会
                 </h2>
                 <p>
-                  Try month view for upcoming windows or switch city to explore
-                  nearby activity.
+                  可切换到月历查看后续时间窗口，或切换城市探索更多活动。
                 </p>
                 <div className="action-row">
                   <Link
                     className="event-detail-link"
                     href={
-                      `/host?city=${encodeURIComponent(calendar.city)}` as Route
+                      `/zh/host?city=${encodeURIComponent(calendar.city)}` as Route
                     }
                   >
-                    Become a Host and create an event
+                    成为主办方并创建活动
                   </Link>
                 </div>
               </article>
@@ -425,7 +423,7 @@ export default async function EventBoardPage({
                         className={`event-tag event-tag-status ${isPast ? "past" : "upcoming"}`}
                       >
                         <span className="event-status-dot" aria-hidden="true" />
-                        {isPast ? "Past" : "Upcoming"}
+                        {isPast ? "已结束" : "即将开始"}
                       </span>
                       {event.tags.map((tag) => (
                         <span key={tag} className="event-tag">
@@ -435,14 +433,14 @@ export default async function EventBoardPage({
                     </div>
 
                     <div className="event-card-foot">
-                      <span>{event.spots_remaining} spots remaining</span>
+                      <span>{event.spots_remaining} 个名额剩余</span>
                       <Link
                         className="event-detail-link"
                         href={
-                          `/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route
+                          `/zh/calendar/${calendar.city}/event/${event.meetup_id}?${detailQueryText}` as Route
                         }
                       >
-                        View details
+                        查看详情
                       </Link>
                     </div>
                   </article>
@@ -455,8 +453,7 @@ export default async function EventBoardPage({
             <div className="calendar-head">
               <h2>{monthHeading}</h2>
               <p className="muted">
-                Calendar is a subfunction of the Event Board for date-context
-                browsing.
+                月历是活动看板的补充视图，用于按日期浏览。
               </p>
             </div>
 
@@ -485,7 +482,7 @@ export default async function EventBoardPage({
                       ))}
                       {events.length > 2 ? (
                         <div className="event-meta">
-                          +{events.length - 2} more
+                          +{events.length - 2} 个
                         </div>
                       ) : null}
                     </article>
@@ -496,7 +493,7 @@ export default async function EventBoardPage({
 
             <div className="agenda-list">
               {calendar.events.length === 0 ? (
-                <p className="muted">No events in this range.</p>
+                <p className="muted">该时间范围内暂无活动。</p>
               ) : (
                 calendar.events.map((event) => (
                   <article className="agenda-item" key={event.meetup_id}>
@@ -519,8 +516,7 @@ export default async function EventBoardPage({
             <span className="icon-box">
               <CalendarIcon />
             </span>
-            Public board only: exact venues stay hidden until invitation letter
-            verification.
+            仅公开看板信息：精确地点会在邀请函验证后才显示。
           </div>
         </article>
       </section>

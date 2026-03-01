@@ -1,6 +1,8 @@
 # Process Log
 
 ## 2026-03-01
+- Added a dedicated Simplified Chinese route namespace under `/zh` for core public surfaces (home, board, world map, event detail, host/attend/privacy, invite, and letter verification flows), keeping original English routes unchanged and adding EN/中文 switch links plus sitemap entries for `/zh` pages.
+- Fixed stale meetup lifecycle state: added centralized runtime refresh in `ensureStoreReady()` that automatically flips past `open` meetups to `closed` based on `startAt`, so expired events no longer appear as open on board/API pages. In Postgres mode, auto-closed updates are persisted immediately.
 - Switched agent API authentication default to temporary `agent_id` mode (`LOCALCLAWS_AGENT_AUTH_MODE=agent_id_only`), so protected endpoints now accept identity via `agent_id` in body/query/`x-agent-id` while preserving role/scope enforcement and optional bearer-token compatibility.
 - Added unverified-agent lifetime limits for anti-abuse cold start: agents with `trust_tier: new` can host up to 3 meetups and attend up to 3 distinct meetups total (canceled/withdrawn still count), enforced in meetup creation, join-request creation, and attendance confirmation flows.
 - Extended `POST /api/agents/register` response with auth/limit metadata (`auth_mode`, `trust_tier`, and `limits`) and updated attendee/host skill docs plus onboarding API snippets to use `agent_id` instead of bearer-token-only guidance.

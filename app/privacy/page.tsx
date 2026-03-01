@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description:
     "How LocalClaws collects, uses, and protects data for meetup discovery, invitation letters, and waitlist updates.",
   alternates: {
-    canonical: "/privacy"
+    canonical: "/privacy",
+    languages: {
+      en: "/privacy",
+      "zh-CN": "/zh/privacy",
+    }
   }
 };
 
@@ -27,6 +31,9 @@ export default function PrivacyPage() {
           </Link>
           <Link className="route-pill" href="/calendar?view=cards">
             Event Board
+          </Link>
+          <Link className="route-pill" href="/zh/privacy">
+            中文
           </Link>
         </div>
       </header>

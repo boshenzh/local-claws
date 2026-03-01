@@ -47,6 +47,23 @@ type MapEventCard = PublicMapEvent & {
 type GlobalMapBoardProps = {
   events: MapEventCard[];
   markers: PublicMapMarker[];
+  labels?: {
+    mapTitle?: string;
+    mapSubtitle?: string;
+    mapAriaLabel?: string;
+    mapUnavailablePrefix?: string;
+    mapFallbackNote?: string;
+    listTitle?: string;
+    listSubtitle?: string;
+    emptyTitle?: string;
+    emptyHint?: string;
+    parsedMarker?: string;
+    clusterMarker?: string;
+    fallbackMarker?: string;
+    listOnlyMarker?: string;
+    spotsRemainingSuffix?: string;
+    viewDetails?: string;
+  };
 };
 
 type MarkerHandle = {
@@ -142,6 +159,25 @@ function markerIcon(
 }
 
 export function GlobalMapBoard(props: GlobalMapBoardProps) {
+  const labels = {
+    mapTitle: "World meetup map",
+    mapSubtitle:
+      "OpenStreetMap public context only. Exact venues remain private in invitation letters.",
+    mapAriaLabel: "Global meetup map",
+    mapUnavailablePrefix: "Map unavailable:",
+    mapFallbackNote: "City-fallback markers are grouped with count badges.",
+    listTitle: "Meetups",
+    listSubtitle: "Select a card or marker to sync map focus with the list.",
+    emptyTitle: "No open meetups in this window",
+    emptyHint: "Try a wider date range.",
+    parsedMarker: "Parsed map marker",
+    clusterMarker: "City marker cluster",
+    fallbackMarker: "City fallback marker",
+    listOnlyMarker: "List only",
+    spotsRemainingSuffix: "spots remaining",
+    viewDetails: "View details",
+    ...props.labels,
+  };
   const [mapError, setMapError] = useState<string | null>(null);
   const [activeMeetupIds, setActiveMeetupIds] = useState<string[]>(
     props.events.length > 0 ? [props.events[0].meetupId] : [],
@@ -258,36 +294,36 @@ export function GlobalMapBoard(props: GlobalMapBoardProps) {
     <section className="map-board-layout section reveal delay-2">
       <article className="map-panel">
         <div className="map-panel-head">
-          <h2>World meetup map</h2>
+          <h2>{labels.mapTitle}</h2>
           <p className="event-map-note">
-            OpenStreetMap public context only. Exact venues remain private in invitation letters.
+            {labels.mapSubtitle}
           </p>
         </div>
         <div
           className="city-map-canvas"
           ref={mapContainerRef}
           role="application"
-          aria-label="Global meetup map"
+          aria-label={labels.mapAriaLabel}
         />
-        {mapError ? <p className="event-map-note">Map unavailable: {mapError}</p> : null}
+        {mapError ? <p className="event-map-note">{labels.mapUnavailablePrefix} {mapError}</p> : null}
         <p className="event-map-note">
-          City-fallback markers are grouped with count badges.
+          {labels.mapFallbackNote}
         </p>
       </article>
 
       <article className="map-list-panel">
         <div className="map-panel-head">
-          <h2>Meetups ({props.events.length})</h2>
+          <h2>{labels.listTitle} ({props.events.length})</h2>
           <p className="event-map-note">
-            Select a card or marker to sync map focus with the list.
+            {labels.listSubtitle}
           </p>
         </div>
 
         <div className="map-event-list">
           {props.events.length === 0 ? (
             <article className="event-card event-card-empty">
-              <h3>No open meetups in this window</h3>
-              <p>Try a wider date range.</p>
+              <h3>{labels.emptyTitle}</h3>
+              <p>{labels.emptyHint}</p>
             </article>
           ) : (
             props.events.map((event) => {
@@ -295,12 +331,12 @@ export function GlobalMapBoard(props: GlobalMapBoardProps) {
               const hasMarker = Boolean(event.markerKey);
               const markerLabel =
                 event.markerSource === "parsed_link"
-                  ? "Parsed map marker"
+                  ? labels.parsedMarker
                   : event.markerSource === "city_fallback"
                     ? event.markerClusterCount > 1
-                      ? `City marker cluster (${event.markerClusterCount})`
-                      : "City fallback marker"
-                    : "List only";
+                      ? `${labels.clusterMarker} (${event.markerClusterCount})`
+                      : labels.fallbackMarker
+                    : labels.listOnlyMarker;
 
               return (
                 <article
@@ -333,14 +369,14 @@ export function GlobalMapBoard(props: GlobalMapBoardProps) {
                     </div>
                   </button>
                   <div className="map-event-foot">
-                    <span>{event.spotsRemaining} spots remaining</span>
+                    <span>{event.spotsRemaining} {labels.spotsRemainingSuffix}</span>
                     <span className={`map-marker-chip${hasMarker ? "" : " missing"}`}>
                       {markerLabel}
                     </span>
                   </div>
                   <div className="action-row">
                     <a className="event-detail-link" href={event.detailHref}>
-                      View details
+                      {labels.viewDetails}
                     </a>
                   </div>
                 </article>

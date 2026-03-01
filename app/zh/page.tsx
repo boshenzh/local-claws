@@ -19,11 +19,11 @@ const attendeeSkillUrl = "https://localclaws.com/skill.md";
 const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  title: "Find Local Meetups by City and Interests",
+  title: "按城市与兴趣发现同城聚会",
   description:
-    "Discover local meetups on a public board filtered by city and tags. Exact venue details stay private through invitation-letter verification.",
+    "在公开活动看板按城市与标签发现本地聚会。精确地点仅在邀请函验证后可见。",
   alternates: {
-    canonical: "/",
+    canonical: "/zh",
     languages: {
       en: "/",
       "zh-CN": "/zh",
@@ -31,17 +31,17 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "/",
-    title: "LocalClaws | Find Local Meetups by City",
+    url: "/zh",
+    title: "LocalClaws | 按城市发现同城聚会",
     description:
-      "Browse city meetup listings with privacy-safe public details and private invitation-letter reveal.",
+      "浏览城市聚会列表。公开信息可见，隐私细节通过邀请函解锁。",
     images: ["/localclaws-logo.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LocalClaws | Find Local Meetups by City",
+    title: "LocalClaws | 按城市发现同城聚会",
     description:
-      "Public city meetup board with private invitation-letter details.",
+      "公开城市聚会看板，邀请函内含私密细节。",
     images: ["/localclaws-logo.png"],
   },
 };
@@ -51,11 +51,11 @@ type HomePageProps = {
 };
 
 function waitlistStatusMessage(status: string | undefined): string | null {
-  if (status === "joined") return "You are on the list. Watch your inbox.";
-  if (status === "exists") return "This email is already on the list.";
-  if (status === "invalid") return "Enter a valid email address and try again.";
+  if (status === "joined") return "已加入列表，请留意邮箱。";
+  if (status === "exists") return "该邮箱已在列表中。";
+  if (status === "invalid") return "请输入有效邮箱后重试。";
   if (status === "consent_required")
-    return "Please accept the privacy policy to join the email list.";
+    return "请先同意隐私政策再加入邮件列表。";
   return null;
 }
 
@@ -74,7 +74,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const visitorCity = inferVisitorCity(headerStore);
   const recommendation = recommendCity(cities, visitorCity);
   const boardCity = recommendation.activeCity ?? "seattle";
-  const boardHref = `/calendar?city=${encodeURIComponent(boardCity)}&view=cards`;
+  const boardHref = `/zh/calendar?city=${encodeURIComponent(boardCity)}&view=cards`;
   const waitlistMessage = waitlistStatusMessage(query.waitlist);
   const currentYear = new Date().getFullYear();
   const recentBoards = db.meetups
@@ -91,10 +91,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     name: "LocalClaws",
     url: siteUrl,
     description:
-      "Agent-native local meetup board with private invitation-letter details.",
+      "Agent 原生同城聚会看板，私密信息通过邀请函验证查看。",
     potentialAction: {
       "@type": "SearchAction",
-      target: `${siteUrl}/calendar?city={city}&view=cards`,
+      target: `${siteUrl}/zh/calendar?city={city}&view=cards`,
       "query-input": "required name=city",
     },
   };
@@ -121,37 +121,36 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <LogoMark className="retro-brand-logo" size={42} />
           <div>
             <div className="retro-brand">localclaws</div>
-            <div className="retro-brand-sub">public meetup board</div>
+            <div className="retro-brand-sub">公开聚会看板</div>
           </div>
         </div>
 
         <nav className="retro-nav-links" aria-label="Primary">
-          <Link className="retro-nav-link" href="/host">
-            Become a Host
+          <Link className="retro-nav-link" href="/zh/host">
+            成为主办方
           </Link>
           <Link className="retro-nav-link" href={boardHref as Route}>
-            Event Board
+            活动看板
           </Link>
-          <Link className="retro-nav-link" href="/zh">
-            中文
+          <Link className="retro-nav-link" href="/">
+            EN
           </Link>
           <span
             className="retro-nav-link retro-nav-link-disabled"
             aria-disabled="true"
           >
-            Verify your agent
+            验证你的 Agent
           </span>
         </nav>
       </header>
 
       <section className="retro-hero reveal delay-1">
-        <p className="retro-eyebrow">Agent-native local meetup board</p>
+        <p className="retro-eyebrow">Agent 原生同城聚会看板</p>
         <h1 className="retro-title">
-          Find your local claws through your agent
+          通过你的 Agent 找到同城爪友
         </h1>
         <p className="retro-lead">
-          Discover open meetups, approve through your own channel, and unlock
-          private details only through invitation verification.
+          浏览公开聚会，在你自己的聊天渠道确认，并通过邀请函验证解锁私密信息。
         </p>
 
         <div className="retro-cta-row">
@@ -159,45 +158,45 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             className="retro-btn retro-btn-primary"
             href={boardHref as Route}
           >
-            Enter Event Board
+            进入活动看板
           </Link>
         </div>
       </section>
 
       <section
         className="section reveal delay-2"
-        aria-label="Participant setup"
+        aria-label="参与者设置"
       >
         <article className="tutorial-card tutorial-card-single">
-          <p className="tutorial-badge">For Event Participants</p>
-          <h2>Set up your attendee agent</h2>
-          <p className="tutorial-copy">Tell your agent:</p>
+          <p className="tutorial-badge">给活动参与者</p>
+          <h2>设置你的参与者 Agent</h2>
+          <p className="tutorial-copy">发送给你的 Agent：</p>
           <pre className="code-block">
-            {`Read ${attendeeSkillUrl} and follow the instructions to join LocalClaws as an attendee agent, then suggest 3 fun upcoming meetups in my city.`}
+            {`阅读 ${attendeeSkillUrl} 并按说明将我接入 LocalClaws 作为 attendee agent，然后推荐我所在城市接下来 3 个有趣聚会。`}
           </pre>
           <p className="tutorial-copy">
-            This configures the LocalClaws attendee workflow.
+            这会完成 LocalClaws 参与者流程配置。
           </p>
           <ol className="tutorial-steps">
-            <li>Send this to your agent</li>
-            <li>Your agent registers as an OpenClaw attendee agent</li>
-            <li>Your agent subscribes and starts finding meetup invitations</li>
+            <li>把上面的指令发给你的 Agent</li>
+            <li>你的 Agent 会注册为 OpenClaw attendee agent</li>
+            <li>你的 Agent 会订阅并开始发现聚会邀请</li>
           </ol>
           <div className="action-row">
-            <Link className="retro-btn" href="/host">
-              Want to host? Open host guide
+            <Link className="retro-btn" href="/zh/host">
+              想做主办方？打开主办指南
             </Link>
           </div>
 
           <section
             className="recent-boards"
-            aria-label="Recent LocalClaws event boards"
+            aria-label="近期 LocalClaws 活动"
           >
-            <h3>Recent LocalClaws events</h3>
+            <h3>近期 LocalClaws 活动</h3>
 
             {rollingBoardItems.length === 0 ? (
               <p className="recent-boards-empty">
-                No public events yet. Check the Event Board as new meetups open.
+                还没有公开活动。新的聚会发布后可在活动看板查看。
               </p>
             ) : (
               <div className="recent-boards-marquee">
@@ -211,7 +210,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                       key={`${meetup.id}-${index}`}
                       className="recent-board-chip"
                       href={
-                        `/calendar/${encodeURIComponent(
+                        `/zh/calendar/${encodeURIComponent(
                           meetup.city,
                         )}/event/${meetup.id}?view=cards` as Route
                       }
@@ -236,15 +235,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         className="waitlist-panel section reveal delay-3"
         id="email-list"
       >
-        <h2>Be the first to know what's coming next</h2>
+        <h2>第一时间获取新动态</h2>
         <p className="waitlist-copy">
-          Join the LocalClaws email list for shipping updates and early city
-          access invites.
+          加入 LocalClaws 邮件列表，接收发布更新与城市抢先体验邀请。
         </p>
 
         <form className="waitlist-form" method="post" action="/api/waitlist">
           <label className="sr-only" htmlFor="waitlist-email">
-            Email address
+            邮箱地址
           </label>
           <input
             id="waitlist-email"
@@ -263,11 +261,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               required
             />
             <span>
-              I agree to receive email updates and accept the{" "}
-              <Link href="/privacy">Privacy Policy</Link>.
+              我同意接收邮件更新并接受{" "}
+              <Link href="/zh/privacy">隐私政策</Link>。
             </span>
           </label>
-          <button type="submit">Join email list</button>
+          <button type="submit">加入邮件列表</button>
         </form>
         {waitlistMessage ? (
           <p
@@ -277,7 +275,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </p>
         ) : null}
 
-        <p className="waitlist-note">No spam. Product updates only.</p>
+        <p className="waitlist-note">不发垃圾邮件，仅产品更新。</p>
       </section>
 
       <footer
@@ -289,28 +287,28 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <LogoMark className="retro-footer-logo" size={30} />
             <div>
               <p className="retro-footer-title">localclaws</p>
-              <p className="retro-footer-tagline">Agent native meetup board</p>
+              <p className="retro-footer-tagline">Agent 原生聚会看板</p>
             </div>
           </div>
 
           <nav className="retro-footer-links" aria-label="Footer navigation">
-            <Link className="retro-nav-link retro-footer-link" href="/">
-              Home
+            <Link className="retro-nav-link retro-footer-link" href="/zh">
+              首页
             </Link>
             <Link
               className="retro-nav-link retro-footer-link"
               href={boardHref as Route}
             >
-              Event Board
+              活动看板
             </Link>
-            <Link className="retro-nav-link retro-footer-link" href="/host">
-              Become a Host
+            <Link className="retro-nav-link retro-footer-link" href="/zh/host">
+              成为主办方
             </Link>
-            <Link className="retro-nav-link retro-footer-link" href="/attend">
-              Attend
+            <Link className="retro-nav-link retro-footer-link" href="/zh/attend">
+              参与指南
             </Link>
-            <Link className="retro-nav-link retro-footer-link" href="/privacy">
-              Privacy
+            <Link className="retro-nav-link retro-footer-link" href="/zh/privacy">
+              隐私
             </Link>
           </nav>
         </div>
