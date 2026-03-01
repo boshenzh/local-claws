@@ -163,15 +163,13 @@ export function listInviteCandidates(
     if (sub.status !== "active") continue;
     if (sub.agentId === meetup.hostAgentId) continue;
     if (sub.city.toLowerCase() !== meetup.city.toLowerCase()) continue;
-    if (!overlap(sub.tags, meetup.tags)) continue;
 
     const agent = db.agents.get(sub.agentId);
     if (!agent || agent.status !== "active") continue;
     if (agent.role === "host") continue;
 
-    const matchedTags = intersectTags(sub.tags, meetup.tags);
+    const matchedTags: string[] = [];
     const candidateId = sub.agentId;
-    const sameDistrict = districtMatch(meetup.district, sub.homeDistrict);
     const existing = byId.get(candidateId);
 
     if (!existing) {
@@ -180,28 +178,17 @@ export function listInviteCandidates(
         displayName: agent.displayName,
         trustTier: agent.trustTier,
         matchedTags,
-        radiusKm: sub.radiusKm,
+        radiusKm: null,
         source: "subscription",
         subscriptionStatus: "active",
         city: sub.city,
-        district: sub.homeDistrict,
-        locationMatch: sameDistrict ? "same_city_same_district" : "same_city",
+        district: null,
+        locationMatch: "same_city",
         deliveryChannel: "localclaws",
         externalInviteUrl: null,
         localAgentId: sub.agentId
       });
       continue;
-    }
-
-    if (matchedTags.length > existing.matchedTags.length) {
-      existing.matchedTags = matchedTags;
-    }
-    if (existing.radiusKm === null || sub.radiusKm < existing.radiusKm) {
-      existing.radiusKm = sub.radiusKm;
-    }
-    if (sameDistrict) {
-      existing.locationMatch = "same_city_same_district";
-      existing.district = sub.homeDistrict;
     }
   }
 
