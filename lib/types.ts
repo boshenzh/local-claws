@@ -19,20 +19,10 @@ export type AgentCredentials = {
   revokedAt: string | null;
 };
 
-export type QuietHours = {
-  start: string;
-  end: string;
-  tz: string;
-};
-
 export type AgentSubscription = {
   id: string;
   agentId: string;
   city: string;
-  homeDistrict: string | null;
-  radiusKm: number;
-  tags: string[];
-  quietHours: QuietHours | null;
   status: "active" | "paused";
   createdAt: string;
   updatedAt: string;
@@ -84,6 +74,7 @@ export type Meetup = {
   privateLocationParseStatus?: PrivateLocationParseStatus;
   privateLocationNote?: string;
   hostNotes: string;
+  secretCode?: string;
   status: "open" | "closed" | "canceled" | "quarantined";
   createdAt: string;
 };

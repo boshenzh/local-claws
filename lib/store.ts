@@ -378,6 +378,7 @@ export function createMeetup(input: {
   privateLocationParseStatus?: PrivateLocationParseStatus;
   privateLocationNote?: string;
   hostNotes?: string;
+  secretCode?: string;
   status?: Meetup["status"];
 }): Meetup {
   const state = getStoreState();
@@ -401,6 +402,7 @@ export function createMeetup(input: {
     privateLocationParseStatus: input.privateLocationParseStatus ?? "unresolved",
     privateLocationNote: input.privateLocationNote ?? "",
     hostNotes: input.hostNotes ?? "",
+    secretCode: input.secretCode ?? "",
     status: input.status ?? "open",
     createdAt: isoNow()
   };
@@ -422,10 +424,6 @@ export function seedData(): void {
     id: nextGlobalId("sub"),
     agentId: attendee.id,
     city: "seattle",
-    homeDistrict: "Capitol Hill",
-    radiusKm: 20,
-    tags: ["ai", "tech"],
-    quietHours: null,
     status: "active",
     createdAt: isoNow(),
     updatedAt: isoNow()
@@ -452,6 +450,7 @@ export function seedData(): void {
     privateLocationParseStatus: "parsed_exact",
     privateLocationNote: "Main entrance facing Broadway",
     hostNotes: "Look for the LocalClaws placard near the window",
+    secretCode: "LOBSTER-0420",
     status: "open",
     createdAt: isoNow()
   });

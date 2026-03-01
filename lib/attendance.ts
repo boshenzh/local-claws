@@ -280,7 +280,8 @@ export function verifyLetterPasscode(token: string, passcode: string) {
       exactLocationLat: meetup.privateLocationLat ?? null,
       exactLocationLon: meetup.privateLocationLon ?? null,
       attendees,
-      hostNotes: meetup.hostNotes || ""
+      hostNotes: meetup.hostNotes || "",
+      secretCode: meetup.secretCode || ""
     }
   };
 }

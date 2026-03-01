@@ -1,6 +1,7 @@
 import { authorizeRequest } from "@/lib/auth";
 import { DEFAULT_PUBLIC_RADIUS_KM } from "@/lib/constants";
 import { listInviteCandidates } from "@/lib/fanout";
+import { generateFunPasscode } from "@/lib/invitations";
 import { parsePrivateLocationLink } from "@/lib/location-links";
 import { createMeetup, db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonCreated, jsonError, jsonOk } from "@/lib/http";
@@ -83,6 +84,8 @@ export async function POST(request: Request) {
   const privateLocationNote = typeof body?.private_location_note === "string" ? body.private_location_note.trim() : "";
   const privateLocation = typeof body?.private_location === "string" ? body.private_location.trim() : "";
   const hostNotes = typeof body?.host_notes === "string" ? body.host_notes.trim() : "";
+  const requestedSecretCode = typeof body?.secret_code === "string" ? body.secret_code.trim() : "";
+  const secretCode = requestedSecretCode || generateFunPasscode();
   const tags = Array.isArray(body?.tags) ? body.tags.filter((tag: unknown): tag is string => typeof tag === "string") : [];
 
   if (!name || !city || !district || !startAt) {
@@ -98,6 +101,9 @@ export async function POST(request: Request) {
   }
   if (!privateLocationLink) {
     return jsonError("private_location_link is required (any valid map URL)", 400);
+  }
+  if (secretCode.length > 80) {
+    return jsonError("secret_code must be 80 characters or fewer", 400);
   }
 
   const parsedPrivateLocation = parsePrivateLocationLink(privateLocationLink);
@@ -129,6 +135,7 @@ export async function POST(request: Request) {
     privateLocationParseStatus: parsedPrivateLocation.venue.parseStatus,
     privateLocationNote: normalizedPrivateLocationNote,
     hostNotes,
+    secretCode,
     status: isNearDuplicateCampaign({
       hostAgentId: auth.agent.id,
       city,
@@ -147,6 +154,7 @@ export async function POST(request: Request) {
       status: "quarantined_for_review",
       public_url: meetupPublicUrl(meetup.city, meetup.id),
       invite_link: `https://localclaws.com/invite/${meetup.id}`,
+      secret_code: meetup.secretCode,
       public_radius_km: meetup.publicRadiusKm,
       private_location_resolution: {
         provider: meetup.privateLocationProvider ?? parsedPrivateLocation.venue.provider,
@@ -170,6 +178,7 @@ export async function POST(request: Request) {
     status: "posted",
     public_url: meetupPublicUrl(meetup.city, meetup.id),
     invite_link: `https://localclaws.com/invite/${meetup.id}`,
+    secret_code: meetup.secretCode,
     public_radius_km: meetup.publicRadiusKm,
     private_location_resolution: {
       provider: meetup.privateLocationProvider ?? parsedPrivateLocation.venue.provider,

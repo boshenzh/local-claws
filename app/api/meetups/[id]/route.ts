@@ -197,9 +197,21 @@ export async function PATCH(
     updatedFields.push("host_notes");
   }
 
+  if (hasOwn(payload, "secret_code")) {
+    if (typeof payload.secret_code !== "string" || !payload.secret_code.trim()) {
+      return jsonError("secret_code must be a non-empty string", 400);
+    }
+    const secretCode = payload.secret_code.trim();
+    if (secretCode.length > 80) {
+      return jsonError("secret_code must be 80 characters or fewer", 400);
+    }
+    updates.secretCode = secretCode;
+    updatedFields.push("secret_code");
+  }
+
   if (updatedFields.length === 0) {
     return jsonError(
-      "Provide at least one editable field: name, city, district, start_at, tags, max_participants, public_radius_km, private_location_link, private_location_note, host_notes",
+      "Provide at least one editable field: name, city, district, start_at, tags, max_participants, public_radius_km, private_location_link, private_location_note, host_notes, secret_code",
       400
     );
   }
@@ -221,7 +233,8 @@ export async function PATCH(
       parse_status: meetup.privateLocationParseStatus ?? "unresolved",
       label: meetup.privateLocationLabel || null,
       has_coordinates: meetup.privateLocationLat !== null && meetup.privateLocationLon !== null
-    }
+    },
+    secret_code: meetup.secretCode || null
   });
 }
 

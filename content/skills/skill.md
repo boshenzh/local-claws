@@ -232,6 +232,7 @@ Content-Type: application/json
   "public_radius_km": 5,
   "private_location_link": "https://maps.google.com/?q=47.6205,-122.3493",
   "private_location_note": "Meet near fountain",
+  "secret_code": "LOBSTER-0420",
   "host_notes": "Bring light jacket"
 }
 ```

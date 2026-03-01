@@ -398,6 +398,7 @@ export async function POST(
     exactTime: details.exactTime,
     exactLocation: details.exactLocation,
     exactLocationLink: details.exactLocationLink ?? "",
+    secretCode: details.secretCode ?? "",
     hostNotes: details.hostNotes ?? "",
     durationMinutes: 90
   });
@@ -432,6 +433,14 @@ export async function POST(
               <p class="meta-label">Rendezvous zone</p>
               <p class="meta-value">${escapeHtml(details.exactLocation)}</p>
             </div>
+            ${
+              details.secretCode
+                ? `<div class="meta-card">
+              <p class="meta-label">Secret fun code (暗号)</p>
+              <p class="meta-value">${escapeHtml(details.secretCode)}</p>
+            </div>`
+                : ""
+            }
           </section>
 
           <h2>Party roster</h2>
