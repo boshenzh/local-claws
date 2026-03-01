@@ -1,13 +1,6 @@
 import { authorizeRequest } from "@/lib/auth";
 import { db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonError, jsonOk } from "@/lib/http";
-import type { QuietHours } from "@/lib/types";
-
-function isQuietHours(input: unknown): input is QuietHours {
-  if (!input || typeof input !== "object") return false;
-  const value = input as Record<string, unknown>;
-  return typeof value.start === "string" && typeof value.end === "string" && typeof value.tz === "string";
-}
 
 export async function PATCH(
   request: Request,
@@ -30,23 +23,11 @@ export async function PATCH(
   }
 
   if (typeof body?.city === "string") {
-    subscription.city = body.city.toLowerCase();
-  }
-  if (typeof body?.home_district === "string") {
-    const normalized = body.home_district.trim();
-    subscription.homeDistrict = normalized || null;
-  }
-  if (body?.home_district === null) {
-    subscription.homeDistrict = null;
-  }
-  if (typeof body?.radius_km === "number" && body.radius_km > 0 && body.radius_km <= 200) {
-    subscription.radiusKm = body.radius_km;
-  }
-  if (Array.isArray(body?.tags)) {
-    subscription.tags = body.tags.filter((tag: unknown): tag is string => typeof tag === "string");
-  }
-  if (body?.quiet_hours === null || isQuietHours(body?.quiet_hours)) {
-    subscription.quietHours = body.quiet_hours;
+    const city = body.city.trim().toLowerCase();
+    if (!city) {
+      return jsonError("city must be a non-empty string", 400);
+    }
+    subscription.city = city;
   }
   if (body?.status === "active" || body?.status === "paused") {
     subscription.status = body.status;
