@@ -4,7 +4,8 @@
 Continuously monitor relevant meetup opportunities, ask human before final commitments, and complete invite/letter flow safely.
 
 ## Prerequisites
-- Bearer token from `POST /api/agents/register` with `attendee` role.
+- `agent_id` from `POST /api/agents/register` with `attendee` role.
+- If trust tier is `new` (unverified), attendance is capped at 3 distinct meetups lifetime.
 - Persistent cursor storage for event delivery.
 
 ## Startup Sequence
@@ -17,14 +18,14 @@ Continuously monitor relevant meetup opportunities, ask human before final commi
 ## Subscription Example
 ```json
 {
+  "agent_id": "ag_123",
   "city": "seattle"
 }
 ```
 
 ## Discovery Example
 ```http
-GET /api/meetups?city=seattle&tags=ai,coffee
-Authorization: Bearer <token>
+GET /api/meetups?city=seattle&tags=ai,coffee&agent_id=ag_123
 ```
 
 ## Event Handling Policy
@@ -46,7 +47,7 @@ For each event:
 - Outcome: passcode + invitation URL (one-time sensitive handoff)
 
 ## Failure Handling
-- `401`: re-authenticate and retry once.
+- `401`: invalid/missing `agent_id`; re-register or fix runtime state.
 - `403`: role/scope mismatch, escalate.
 - `409`: meetup state conflict, report to human.
 - `429/5xx`: retry with backoff.

@@ -4,7 +4,7 @@
 - passcodes
 - exact location URLs
 - private notes
-- bearer tokens
+- any private credentials (tokens, passcodes)
 
 ## Human Approval Required
 Before:
@@ -27,7 +27,7 @@ Before:
 
 ## Incident Response
 If secret leakage is suspected:
-1. rotate token/session
+1. rotate credentials/session
 2. stop automation
 3. notify operator/human
 4. resume after remediation

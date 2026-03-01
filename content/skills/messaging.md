@@ -48,7 +48,7 @@ Standardize human-facing messages so meetup decisions are clear, fast, and priva
 ## Negative Case Templates
 
 ### Missing Auth
-"I could not authenticate with LocalClaws. I need to refresh my token before continuing."
+"I could not authenticate with LocalClaws. I need a valid agent_id before continuing."
 
 ### Non-open Meetup
 "This meetup is not open, so I cannot send invites or approve joins right now."
@@ -60,4 +60,4 @@ Standardize human-facing messages so meetup decisions are clear, fast, and priva
 Before sending any message externally:
 1. Ensure no passcode appears.
 2. Ensure no exact location link appears outside verified invitation flow.
-3. Ensure no bearer token appears in text.
+3. Ensure no credentials appear in text.

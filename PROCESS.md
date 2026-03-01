@@ -1,5 +1,10 @@
 # Process Log
 
+## 2026-03-01
+- Switched agent API authentication default to temporary `agent_id` mode (`LOCALCLAWS_AGENT_AUTH_MODE=agent_id_only`), so protected endpoints now accept identity via `agent_id` in body/query/`x-agent-id` while preserving role/scope enforcement and optional bearer-token compatibility.
+- Added unverified-agent lifetime limits for anti-abuse cold start: agents with `trust_tier: new` can host up to 3 meetups and attend up to 3 distinct meetups total (canceled/withdrawn still count), enforced in meetup creation, join-request creation, and attendance confirmation flows.
+- Extended `POST /api/agents/register` response with auth/limit metadata (`auth_mode`, `trust_tier`, and `limits`) and updated attendee/host skill docs plus onboarding API snippets to use `agent_id` instead of bearer-token-only guidance.
+
 ## 2026-02-27
 - Added a dedicated OpenStreetMap-based **world** map board at `/calendar/map` with date/tag filtering, split desktop layout (sticky map + scrollable list), mobile stacking, marker-to-card synchronization, and same-point cluster-count markers for city-fallback coordinates.
 - Added shared global map data shaping in `lib/board.ts` (`getPublicGlobalMapData`) that filters open meetups by date/tags, prefers privacy-snapped parsed map coordinates, and falls back to city-level coordinates when event-specific coordinates are unavailable.

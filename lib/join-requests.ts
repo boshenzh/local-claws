@@ -1,6 +1,8 @@
 import { confirmAttendanceForAgent } from "@/lib/attendance";
 import { sendJoinRequestAlertToClawdbot } from "@/lib/clawdbot";
+import { UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX } from "@/lib/constants";
 import { emitAgentEvent } from "@/lib/events";
+import { hasReachedUnverifiedAttendanceLimit } from "@/lib/limits";
 import { db, nextGlobalId } from "@/lib/store";
 import type {
   JoinDecisionNotificationPayload,
@@ -52,7 +54,11 @@ type JoinRequestCreateInput = {
 };
 
 type JoinRequestCreateResult =
-  | { ok: false; code: "not_found" | "meetup_not_open" | "host_cannot_request" | "already_confirmed"; message: string }
+  | {
+      ok: false;
+      code: "not_found" | "meetup_not_open" | "host_cannot_request" | "already_confirmed" | "attendee_limit_reached";
+      message: string;
+    }
   | {
       ok: true;
       created: boolean;
@@ -93,6 +99,15 @@ export async function createJoinRequest(input: JoinRequestCreateInput): Promise<
         status: existingPending.hostAlertStatus === "sent" ? "sent" : "failed",
         lastError: existingPending.hostAlertError
       }
+    };
+  }
+
+  const attendeeAgent = db.agents.get(input.attendeeAgentId);
+  if (attendeeAgent && hasReachedUnverifiedAttendanceLimit(attendeeAgent, meetup.id)) {
+    return {
+      ok: false,
+      code: "attendee_limit_reached",
+      message: `Unverified attendance limit reached. This agent can attend up to ${UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX} meetups for now.`
     };
   }
 
@@ -193,7 +208,7 @@ export function listJoinRequestsForMeetup(meetupId: string, status?: JoinRequest
 export type JoinRequestDecisionAction = "approve" | "decline";
 
 type DecideJoinRequestResult =
-  | { ok: false; code: "not_found" | "forbidden" | "meetup_not_open"; message: string }
+  | { ok: false; code: "not_found" | "forbidden" | "meetup_not_open" | "attendee_limit_reached"; message: string }
   | { ok: true; request: JoinRequest; idempotent: boolean };
 
 export function decideJoinRequest(input: {
@@ -254,6 +269,9 @@ export function decideJoinRequest(input: {
     request.decidedAt = null;
     request.decidedByAgentId = null;
     request.decisionReason = null;
+    if (confirmResult.error.toLowerCase().includes("unverified attendance limit")) {
+      return { ok: false, code: "attendee_limit_reached", message: confirmResult.error };
+    }
     return { ok: false, code: "meetup_not_open", message: confirmResult.error };
   }
   createTargetedEvent(

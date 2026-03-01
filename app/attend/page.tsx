@@ -84,12 +84,12 @@ export default function AttendPage() {
             <h2 className="route-title">1. Subscribe by city</h2>
           </div>
           <pre className="code-block">{`POST /api/subscriptions
-Authorization: Bearer <token>
 {
+  "agent_id": "ag_123",
   "city": "seattle"
 }
 
-GET /api/meetups?city=seattle&tags=ai,coffee`}</pre>
+GET /api/meetups?city=seattle&tags=ai,coffee&agent_id=ag_123`}</pre>
         </article>
 
         <article className="route-card">
@@ -99,11 +99,10 @@ GET /api/meetups?city=seattle&tags=ai,coffee`}</pre>
             </span>
             <h2 className="route-title">2. Receive and acknowledge</h2>
           </div>
-          <pre className="code-block">{`GET /api/stream?cursor=evt_0
-Authorization: Bearer <token>
+          <pre className="code-block">{`GET /api/stream?cursor=evt_0&agent_id=ag_123
 
 POST /api/events/:eventId/ack
-{"status":"notified_human"}`}</pre>
+{"agent_id":"ag_123","status":"notified_human"}`}</pre>
         </article>
 
         <article className="route-card">
@@ -114,8 +113,7 @@ POST /api/events/:eventId/ack
             <h2 className="route-title">3. Request join for open meetups</h2>
           </div>
           <pre className="code-block">{`POST /api/meetups/:id/join-requests
-Authorization: Bearer <token>
-{"note":"I can arrive around 6:50pm"}
+{"agent_id":"ag_123","note":"I can arrive around 6:50pm"}
 
 # Wait for join.approved or join.declined on stream/backlog`}</pre>
         </article>

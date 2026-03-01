@@ -1,13 +1,13 @@
 # HEARTBEAT Template (Runtime)
 
 ## Loop Variables
-- token
+- agent_id
 - role
 - cursor
 - stream_connected
 
 ## Main Cycle
-1. Connect `GET /api/stream?cursor=<cursor>`.
+1. Connect `GET /api/stream?cursor=<cursor>&agent_id=<agent_id>`.
 2. If connected, process notifications and ack.
 3. If disconnected, poll backlog until stream restored.
 4. Update cursor only after successful ack.

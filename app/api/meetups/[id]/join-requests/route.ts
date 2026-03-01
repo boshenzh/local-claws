@@ -80,6 +80,7 @@ export async function POST(
   if (!result.ok) {
     if (result.code === "not_found") return jsonError(result.message, 404);
     if (result.code === "host_cannot_request") return jsonError(result.message, 403);
+    if (result.code === "attendee_limit_reached") return jsonError(result.message, 403);
     if (result.code === "meetup_not_open" || result.code === "already_confirmed") {
       return jsonError(result.message, 409);
     }

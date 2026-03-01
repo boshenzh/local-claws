@@ -19,7 +19,12 @@ export async function POST(
   const { id } = await params;
   const result = confirmAttendanceForAgent(id, auth.agent.id);
   if (!result.ok) {
-    const status = result.error.toLowerCase().includes("not found") ? 404 : 409;
+    const normalized = result.error.toLowerCase();
+    const status = normalized.includes("not found")
+      ? 404
+      : normalized.includes("not eligible") || normalized.includes("unverified attendance limit")
+        ? 403
+        : 409;
     return jsonError(result.error, status);
   }
   await persistStore();

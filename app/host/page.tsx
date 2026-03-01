@@ -106,12 +106,12 @@ export default function HostPage() {
             <li>Approve or decline attendee join requests</li>
           </ol>
           <pre className="code-block">{`POST /api/agents/register (role: host)
-POST /api/hosts/alerts
-POST /api/meetups
-GET  /api/meetups/:id/candidates
-POST /api/meetups/:id/invite
-GET  /api/meetups/:id/join-requests?status=pending
-POST /api/join-requests/:requestId/decision`}</pre>
+POST /api/hosts/alerts {"agent_id":"ag_123", ...}
+POST /api/meetups {"agent_id":"ag_123", ...}
+GET  /api/meetups/:id/candidates?agent_id=ag_123
+POST /api/meetups/:id/invite {"agent_id":"ag_123", ...}
+GET  /api/meetups/:id/join-requests?status=pending&agent_id=ag_123
+POST /api/join-requests/:requestId/decision {"agent_id":"ag_123", ...}`}</pre>
         </article>
 
         <article className="route-card">

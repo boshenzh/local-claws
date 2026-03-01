@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { LEGACY_MODE } from "@/lib/constants";
+import { AGENT_AUTH_MODE, LEGACY_MODE } from "@/lib/constants";
 import { db } from "@/lib/store";
 import type { Agent, AgentClaims } from "@/lib/types";
 
@@ -53,6 +53,66 @@ function hasScope(scopes: string[], required: string): boolean {
   return scopes.includes(required);
 }
 
+function scopesForRole(role: Agent["role"]): string[] {
+  if (role === "host") {
+    return ["meetup:create"];
+  }
+  if (role === "attendee") {
+    return [
+      "invite:receive",
+      "meetup:confirm",
+      "meetup:withdraw",
+      "meetup:request_join",
+      "delivery:ack",
+      "subscription:write"
+    ];
+  }
+  return [
+    "meetup:create",
+    "invite:receive",
+    "meetup:confirm",
+    "meetup:withdraw",
+    "meetup:request_join",
+    "delivery:ack",
+    "subscription:write"
+  ];
+}
+
+function getActiveAgentById(agentId: string): Agent | null {
+  const agent = db.agents.get(agentId);
+  if (!agent || agent.status !== "active") return null;
+  return agent;
+}
+
+function parseAgentIdFromRequest(request: Request): string | undefined {
+  const fromHeader = request.headers.get("x-agent-id")?.trim();
+  if (fromHeader) return fromHeader;
+  const fromQuery = new URL(request.url).searchParams.get("agent_id")?.trim();
+  return fromQuery || undefined;
+}
+
+function authorizeWithToken(token: string, requiredScope: string): AuthResult {
+  const claims = verifyToken(token);
+  if (!claims) {
+    return { ok: false, status: 401, error: "Invalid token" };
+  }
+
+  const agent = getActiveAgentById(claims.sub);
+  if (!agent) {
+    return { ok: false, status: 401, error: "Unknown or inactive agent" };
+  }
+
+  if (agent.tokenVersion !== claims.tokenVersion) {
+    return { ok: false, status: 401, error: "Token revoked" };
+  }
+
+  if (!hasScope(claims.scopes, requiredScope)) {
+    return { ok: false, status: 403, error: "Missing required scope" };
+  }
+
+  return { ok: true, agent, legacy: false };
+}
+
 export type AuthResult =
   | { ok: true; agent: Agent; legacy: boolean }
   | { ok: false; status: number; error: string };
@@ -60,33 +120,48 @@ export type AuthResult =
 export function authorizeRequest(
   request: Request,
   requiredScope: string,
-  opts?: { legacyAgentId?: string | undefined }
+  opts?: { legacyAgentId?: string | undefined; agentId?: string | undefined }
 ): AuthResult {
+  const suppliedAgentId = opts?.agentId ?? opts?.legacyAgentId ?? parseAgentIdFromRequest(request);
   const header = request.headers.get("authorization");
-  if (header?.startsWith("Bearer ")) {
-    const token = header.slice("Bearer ".length).trim();
-    const claims = verifyToken(token);
-    if (!claims) {
-      return { ok: false, status: 401, error: "Invalid token" };
+  const bearerToken = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : null;
+
+  if (AGENT_AUTH_MODE === "agent_id_only") {
+    if (suppliedAgentId) {
+      const agent = getActiveAgentById(suppliedAgentId);
+      if (!agent) {
+        return { ok: false, status: 401, error: "Unknown or inactive agent" };
+      }
+
+      if (bearerToken) {
+        const tokenAuth = authorizeWithToken(bearerToken, requiredScope);
+        if (tokenAuth.ok && tokenAuth.agent.id !== agent.id) {
+          return { ok: false, status: 400, error: "authorization token agent_id does not match provided agent_id" };
+        }
+      }
+
+      if (!hasScope(scopesForRole(agent.role), requiredScope)) {
+        return { ok: false, status: 403, error: "Missing required scope" };
+      }
+      return { ok: true, agent, legacy: false };
     }
 
-    const agent = db.agents.get(claims.sub);
-    if (!agent || agent.status !== "active") {
-      return { ok: false, status: 401, error: "Unknown or inactive agent" };
+    if (bearerToken) {
+      return authorizeWithToken(bearerToken, requiredScope);
     }
 
-    if (agent.tokenVersion !== claims.tokenVersion) {
-      return { ok: false, status: 401, error: "Token revoked" };
-    }
-
-    if (!hasScope(claims.scopes, requiredScope)) {
-      return { ok: false, status: 403, error: "Missing required scope" };
-    }
-
-    return { ok: true, agent, legacy: false };
+    return {
+      ok: false,
+      status: 401,
+      error: "Missing agent_id. Register via POST /api/agents/register and send agent_id in body, query, or x-agent-id header."
+    };
   }
 
-  const legacyAgentId = opts?.legacyAgentId;
+  if (header?.startsWith("Bearer ")) {
+    return authorizeWithToken(header.slice("Bearer ".length).trim(), requiredScope);
+  }
+
+  const legacyAgentId = suppliedAgentId;
   if (!LEGACY_MODE.enabled || !legacyAgentId) {
     return {
       ok: false,

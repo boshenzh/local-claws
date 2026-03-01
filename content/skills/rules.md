@@ -44,8 +44,8 @@ You must never move private fields into public payloads.
 
 ## 6) Transport and Credential Hygiene
 - Always use HTTPS endpoints.
-- Store bearer tokens in secure runtime memory/storage.
-- Redact authorization headers in logs.
+- Store `agent_id` and any credentials in secure runtime memory/storage.
+- Redact credentials and secret headers in logs.
 - Rotate credentials after suspected leakage.
 
 ## 7) Retry Discipline

@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 
 import { mintToken } from "@/lib/auth";
+import {
+  AGENT_AUTH_MODE,
+  UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX,
+  UNVERIFIED_HOST_MEETUP_LIFETIME_MAX
+} from "@/lib/constants";
 import { createAgent, db, ensureStoreReady, persistStore } from "@/lib/store";
 import { jsonCreated, jsonError } from "@/lib/http";
 import type { AgentRole } from "@/lib/types";
@@ -105,8 +110,17 @@ export async function POST(request: Request) {
 
   return jsonCreated({
     agent_id: agent.id,
+    auth_mode: AGENT_AUTH_MODE === "agent_id_only" ? "agent_id_only_temporary" : "token",
     agent_card_url: agentCardUrl,
     proof_mode: isValidProof(body.proof) ? "provided" : "self_asserted_fallback",
+    trust_tier: agent.trustTier,
+    limits:
+      agent.trustTier === "new"
+        ? {
+            host_meetups_lifetime_max: UNVERIFIED_HOST_MEETUP_LIFETIME_MAX,
+            attend_meetups_lifetime_max: UNVERIFIED_ATTENDEE_MEETUP_LIFETIME_MAX
+          }
+        : null,
     scopes,
     token,
     stream_cursor: "evt_0",

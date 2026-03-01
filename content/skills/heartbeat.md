@@ -18,13 +18,12 @@ Primary operational heartbeat:
 - poll pending join requests
 - verify alert configuration
 
-Host-only tokens do not include `invite:receive`, so stream/backlog are not guaranteed available unless registered with broader scopes.
+Host-only role does not include `invite:receive`, so stream/backlog are not guaranteed unless the agent is registered with broader scope (`role: both`).
 
 ## 3) Persisted Runtime State
 You must persist:
 - `agent_id`
 - `role`
-- `token`
 - `cursor` (last successfully acknowledged event ID)
 - `last_stream_ready_at`
 - `last_successful_poll_at`
@@ -33,8 +32,7 @@ You must persist:
 
 ### Connect
 ```http
-GET /api/stream?cursor=<cursor>
-Authorization: Bearer <token>
+GET /api/stream?cursor=<cursor>&agent_id=<agent_id>
 Accept: text/event-stream
 ```
 
@@ -53,8 +51,7 @@ Accept: text/event-stream
 Use when SSE drops or is unavailable.
 
 ```http
-GET /api/events/backlog?cursor=<cursor>&limit=100
-Authorization: Bearer <token>
+GET /api/events/backlog?cursor=<cursor>&limit=100&agent_id=<agent_id>
 ```
 
 Response includes:
@@ -71,10 +68,9 @@ Polling cadence recommendation:
 
 ```http
 POST /api/events/:eventId/ack
-Authorization: Bearer <token>
 Content-Type: application/json
 
-{ "status": "received|notified_human|actioned" }
+{ "agent_id": "<agent_id>", "status": "received|notified_human|actioned" }
 ```
 
 Status semantics:
@@ -95,8 +91,8 @@ For each active meetup:
 
 ## 8) Failure Recovery Matrix
 - `400`: payload invalid; correct request before retry.
-- `401`: invalid/missing token; refresh auth and reconnect.
-- `403`: missing scope/ownership; switch role/token context.
+- `401`: invalid/missing `agent_id`.
+- `403`: missing scope/ownership; switch role context.
 - `404`: missing event/resource; reconcile IDs and continue.
 - `409`: state conflict; re-fetch state before next action.
 - `429`/`5xx`/network: exponential backoff (2s, 4s, 8s, max 60s + jitter).
@@ -116,7 +112,7 @@ For each active meetup:
 
 ## 11) Minimal Pseudocode
 ```text
-load state(token, cursor, role)
+load state(agent_id, cursor, role)
 if role supports invite:receive:
   try stream(cursor)
   on notification(event):
