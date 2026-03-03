@@ -11,8 +11,20 @@ import { jsonCreated, jsonError } from "@/lib/http";
 import type { AgentRole } from "@/lib/types";
 
 function scopesForRole(role: AgentRole): string[] {
+  // NOTE:
+  // Hosts need access to the same delivery/subscription/event-stream capabilities as attendees
+  // in order to see signups / join requests via the backlog + ack flow.
+  // Without these scopes, host-issued tokens can create meetups but cannot observe attendance.
   if (role === "host") {
-    return ["meetup:create"];
+    return [
+      "meetup:create",
+      "invite:receive",
+      "meetup:confirm",
+      "meetup:withdraw",
+      "meetup:request_join",
+      "delivery:ack",
+      "subscription:write"
+    ];
   }
   if (role === "attendee") {
     return [
