@@ -7,7 +7,12 @@ import { ensureStoreReady } from "@/lib/store";
 
 export async function GET(request: Request) {
   await ensureStoreReady();
-  const auth = authorizeRequest(request, "invite:receive");
+  // Backlog is used by both attendees (to receive invites) and hosts (to observe signup/join-request events).
+  // Historically host tokens only had `meetup:create`, so we accept either scope here.
+  let auth = authorizeRequest(request, "invite:receive");
+  if (!auth.ok) {
+    auth = authorizeRequest(request, "meetup:create");
+  }
   if (!auth.ok) {
     return jsonError(auth.error, auth.status);
   }
